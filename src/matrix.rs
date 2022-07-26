@@ -342,6 +342,22 @@ where
         .unwrap()
 }
 
+fn convert_type_vector<T, U>(vec: &Vec<T>) -> Vec<U>
+where
+    T: Clone,
+    U: From<T>,
+{
+    vec.iter().map(|x| U::from(x.clone())).collect()
+}
+
+fn convert_type_matrix<T, U>(mat: &MatByVec<T>) -> MatByVec<U>
+where
+    T: Clone,
+    U: From<T>,
+{
+    mat.iter().map(|x| convert_type_vector(x)).collect()
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Matrix<T>(MatByVec<T>);
 
@@ -369,6 +385,14 @@ impl<T> Matrix<T> {
 
     pub fn to_mat_by_vec(self) -> MatByVec<T> {
         self.0
+    }
+
+    pub fn convert_type<U>(&self) -> Matrix<U>
+    where
+        T: Clone,
+        U: From<T>,
+    {
+        Matrix(convert_type_matrix(self.mat_by_vec()))
     }
 }
 
@@ -603,6 +627,14 @@ impl<T> Vector<T> {
 
     pub fn to_vec(self) -> Vec<T> {
         self.0
+    }
+
+    pub fn convert_type<U>(&self) -> Vector<U>
+    where
+        T: Clone,
+        U: From<T>,
+    {
+        Vector(convert_type_vector(self.vec()))
     }
 }
 
