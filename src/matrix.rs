@@ -1,228 +1,46 @@
+//! # Examples
+//!
+//! ```
+//! use atcoder8_library::matrix::{Vector, Matrix};
+//!
+//! let vec = Vector::from(vec![3, -1, 4]);
+//! let mat = Matrix::from(vec![vec![1, -5, 9], vec![2, 6, -5], vec![3, 5, 8]]);
+//! assert_eq!(
+//!     &mat * &vec,
+//!     Vector::from(vec![44, -20, 36])
+//! );
+//! ```
+
 use num::{One, Zero};
 use num_traits::Pow;
 use std::ops::{Add, AddAssign, BitAnd, Mul, Neg, ShrAssign, Sub, SubAssign};
 
 pub type MatByVec<T> = Vec<Vec<T>>;
 
-pub fn shape_matrix<T>(mat: &MatByVec<T>) -> Option<(usize, usize)> {
-    if mat.len() == 0 || mat[0].len() == 0 {
-        return None;
-    }
-
-    if mat.iter().skip(1).all(|x| x.len() == mat[0].len()) {
-        Some((mat.len(), mat[0].len()))
-    } else {
-        None
-    }
-}
-
-pub fn check_rect<T>(mat: &MatByVec<T>) -> bool {
-    shape_matrix(mat).is_some()
-}
-
-pub fn check_square<T>(mat: &MatByVec<T>) -> bool {
-    if let Some((r, c)) = shape_matrix(mat) {
-        r == c
-    } else {
-        false
-    }
-}
-
-fn add_vector<T>(lhs: &Vec<T>, rhs: &Vec<T>) -> Vec<T>
-where
-    T: Clone + Add<Output = T>,
-{
-    lhs.iter()
-        .zip(rhs.iter())
-        .map(|(x, y)| x.clone() + y.clone())
-        .collect()
-}
-
-fn sub_vector<T>(lhs: &Vec<T>, rhs: &Vec<T>) -> Vec<T>
-where
-    T: Clone + Sub<Output = T>,
-{
-    lhs.iter()
-        .zip(rhs.iter())
-        .map(|(x, y)| x.clone() - y.clone())
-        .collect()
-}
-
-fn mul_vector<T>(lhs: &Vec<T>, rhs: &Vec<T>) -> T
-where
-    T: Clone + Add<Output = T> + Mul<Output = T>,
-{
-    lhs.iter()
-        .zip(rhs.iter())
-        .map(|(x, y)| x.clone() * y.clone())
-        .reduce(Add::add)
-        .unwrap()
-}
-
-fn hadamard_prod_vector<T>(lhs: &Vec<T>, rhs: &Vec<T>) -> Vec<T>
-where
-    T: Clone + Mul<Output = T>,
-{
-    lhs.iter()
-        .zip(rhs.iter())
-        .map(|(x, y)| x.clone() * y.clone())
-        .collect()
-}
-
-fn neg_vector<T>(vec: &Vec<T>) -> Vec<T>
-where
-    T: Clone + Neg<Output = T>,
-{
-    vec.iter().map(|x| -x.clone()).collect()
-}
-
-fn add_assign_vector<T>(lhs: &mut Vec<T>, rhs: &Vec<T>)
-where
-    T: Clone + AddAssign<T>,
-{
-    lhs.iter_mut()
-        .zip(rhs.iter())
-        .for_each(|(x, y)| *x += y.clone());
-}
-
-fn sub_assign_vector<T>(lhs: &mut Vec<T>, rhs: &Vec<T>)
-where
-    T: Clone + SubAssign<T>,
-{
-    lhs.iter_mut()
-        .zip(rhs.iter())
-        .for_each(|(x, y)| *x -= y.clone());
-}
-
-fn convert_type_vector<T, U>(vec: &Vec<T>) -> Vec<U>
-where
-    T: Clone,
-    U: From<T>,
-{
-    vec.iter().map(|x| U::from(x.clone())).collect()
-}
-
-fn check_zero_vector<T>(vec: &Vec<T>) -> bool
-where
-    T: Zero,
-{
-    vec.iter().all(|x| x.is_zero())
-}
-
-fn add_matrix<T>(lhs: &MatByVec<T>, rhs: &MatByVec<T>) -> MatByVec<T>
-where
-    T: Clone + Add<Output = T>,
-{
-    lhs.iter()
-        .zip(rhs.iter())
-        .map(|(x, y)| add_vector(x, y))
-        .collect()
-}
-
-fn sub_matrix<T>(lhs: &MatByVec<T>, rhs: &MatByVec<T>) -> MatByVec<T>
-where
-    T: Clone + Sub<Output = T>,
-{
-    lhs.iter()
-        .zip(rhs.iter())
-        .map(|(x, y)| sub_vector(x, y))
-        .collect()
-}
-
-fn hadamard_prod_matrix<T>(lhs: &MatByVec<T>, rhs: &MatByVec<T>) -> MatByVec<T>
-where
-    T: Clone + Mul<Output = T>,
-{
-    lhs.iter()
-        .zip(rhs.iter())
-        .map(|(x, y)| hadamard_prod_vector(x, y))
-        .collect()
-}
-
-fn neg_matrix<T>(mat: &MatByVec<T>) -> MatByVec<T>
-where
-    T: Clone + Neg<Output = T>,
-{
-    mat.iter().map(|x| neg_vector(x)).collect()
-}
-
-fn add_assign_matrix<T>(lhs: &mut MatByVec<T>, rhs: &MatByVec<T>)
-where
-    T: Clone + AddAssign,
-{
-    lhs.iter_mut()
-        .zip(rhs.iter())
-        .for_each(|(x, y)| add_assign_vector(x, y));
-}
-
-fn sub_assign_matrix<T>(lhs: &mut MatByVec<T>, rhs: &MatByVec<T>)
-where
-    T: Clone + SubAssign,
-{
-    lhs.iter_mut()
-        .zip(rhs.iter())
-        .for_each(|(x, y)| sub_assign_vector(x, y));
-}
-
-fn mul_matrix_cell<T>(lhs: &MatByVec<T>, rhs: &MatByVec<T>, pos: (usize, usize)) -> T
-where
-    T: Clone + Add<Output = T> + Mul<Output = T>,
-{
-    (0..lhs[0].len())
-        .map(|i| lhs[pos.0][i].clone() * rhs[i][pos.1].clone())
-        .reduce(Add::add)
-        .unwrap()
-}
-
-fn mul_matrix_row<T>(lhs: &MatByVec<T>, rhs: &MatByVec<T>, idx: usize) -> Vec<T>
-where
-    T: Clone + Add<Output = T> + Mul<Output = T>,
-{
-    (0..rhs[0].len())
-        .map(|i| mul_matrix_cell(lhs, rhs, (idx, i)))
-        .collect()
-}
-
-fn mul_matrix<T>(lhs: &MatByVec<T>, rhs: &MatByVec<T>) -> MatByVec<T>
-where
-    T: Clone + Add<Output = T> + Mul<Output = T>,
-{
-    (0..lhs.len())
-        .map(|i| mul_matrix_row(lhs, rhs, i))
-        .collect()
-}
-
-fn convert_type_matrix<T, U>(mat: &MatByVec<T>) -> MatByVec<U>
-where
-    T: Clone,
-    U: From<T>,
-{
-    mat.iter().map(|x| convert_type_vector(x)).collect()
-}
-
-fn check_zero_matrix<T>(mat: &MatByVec<T>) -> bool
-where
-    T: Zero,
-{
-    mat.iter().all(|x| check_zero_vector(x))
-}
-
-fn map_vector<T, U, F>(vec: &Vec<T>, f: &F) -> Vec<U>
-where
-    F: Fn(&T) -> U,
-{
-    vec.iter().map(|x| f(x)).collect()
-}
-
-fn map_matrix<T, U, F>(mat: &MatByVec<T>, f: &F) -> MatByVec<U>
-where
-    F: Fn(&T) -> U,
-{
-    mat.iter().map(|x| map_vector(x, f)).collect()
-}
-
+/// # Examples
+///
+/// ```
+/// use atcoder8_library::matrix::Vector;
+///
+/// let vec = Vector::from(vec![3, -1, 4]);
+/// ```
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Vector<T>(Vec<T>);
+
+impl<T> From<Vec<T>> for Vector<T> {
+    /// # Examples
+    ///
+    /// ```
+    /// use atcoder8_library::matrix::Vector;
+    ///
+    /// let vec = Vector::from(vec![3, -1, 4]);
+    /// ```
+    fn from(vec: Vec<T>) -> Self {
+        assert_ne!(vec.len(), 0, "The length of the vector must be at least 1.");
+
+        Self(vec)
+    }
+}
 
 impl<T> Vector<T> {
     /// # Examples
@@ -345,21 +163,6 @@ where
         U: From<T>,
     {
         Vector(convert_type_vector(self.vec()))
-    }
-}
-
-impl<T> From<Vec<T>> for Vector<T> {
-    /// # Examples
-    ///
-    /// ```
-    /// use atcoder8_library::matrix::Vector;
-    ///
-    /// let vec = Vector::from(vec![3, -1, 4]);
-    /// ```
-    fn from(vec: Vec<T>) -> Self {
-        assert_ne!(vec.len(), 0, "The length of the vector must be at least 1.");
-
-        Self(vec)
     }
 }
 
@@ -627,8 +430,33 @@ where
     }
 }
 
+/// # Examples
+///
+/// ```
+/// use atcoder8_library::matrix::Matrix;
+///
+/// let mat = Matrix::from(vec![vec![3, -1, 4], vec![1, 5, -9]]);
+/// ```
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Matrix<T>(MatByVec<T>);
+
+impl<T> From<MatByVec<T>> for Matrix<T> {
+    /// # Examples
+    ///
+    /// ```
+    /// use atcoder8_library::matrix::Matrix;
+    ///
+    /// let mat = Matrix::from(vec![vec![3, -1, 4], vec![1, 5, -9]]);
+    /// ```
+    fn from(mat: MatByVec<T>) -> Self {
+        assert!(
+            check_rect(&mat),
+            "The shape of the matrix must be rectangular."
+        );
+
+        Self(mat)
+    }
+}
 
 impl<T> Matrix<T> {
     /// # Examples
@@ -895,24 +723,6 @@ where
     /// ```
     pub fn col_vector(&self, idx: usize) -> Vector<T> {
         Vector((0..self.0.len()).map(|i| self.0[i][idx].clone()).collect())
-    }
-}
-
-impl<T> From<MatByVec<T>> for Matrix<T> {
-    /// # Examples
-    ///
-    /// ```
-    /// use atcoder8_library::matrix::Matrix;
-    ///
-    /// let mat = Matrix::from(vec![vec![3, -1, 4], vec![1, 5, -9]]);
-    /// ```
-    fn from(mat: MatByVec<T>) -> Self {
-        assert!(
-            check_rect(&mat),
-            "The shape of the matrix must be rectangular."
-        );
-
-        Self(mat)
     }
 }
 
@@ -1307,4 +1117,221 @@ mod tests {
         ]);
         assert_eq!(mat.pow(3), pow3_mat);
     }
+}
+
+pub fn shape_matrix<T>(mat: &MatByVec<T>) -> Option<(usize, usize)> {
+    if mat.len() == 0 || mat[0].len() == 0 {
+        return None;
+    }
+
+    if mat.iter().skip(1).all(|x| x.len() == mat[0].len()) {
+        Some((mat.len(), mat[0].len()))
+    } else {
+        None
+    }
+}
+
+pub fn check_rect<T>(mat: &MatByVec<T>) -> bool {
+    shape_matrix(mat).is_some()
+}
+
+pub fn check_square<T>(mat: &MatByVec<T>) -> bool {
+    if let Some((r, c)) = shape_matrix(mat) {
+        r == c
+    } else {
+        false
+    }
+}
+
+fn add_vector<T>(lhs: &Vec<T>, rhs: &Vec<T>) -> Vec<T>
+where
+    T: Clone + Add<Output = T>,
+{
+    lhs.iter()
+        .zip(rhs.iter())
+        .map(|(x, y)| x.clone() + y.clone())
+        .collect()
+}
+
+fn sub_vector<T>(lhs: &Vec<T>, rhs: &Vec<T>) -> Vec<T>
+where
+    T: Clone + Sub<Output = T>,
+{
+    lhs.iter()
+        .zip(rhs.iter())
+        .map(|(x, y)| x.clone() - y.clone())
+        .collect()
+}
+
+fn mul_vector<T>(lhs: &Vec<T>, rhs: &Vec<T>) -> T
+where
+    T: Clone + Add<Output = T> + Mul<Output = T>,
+{
+    lhs.iter()
+        .zip(rhs.iter())
+        .map(|(x, y)| x.clone() * y.clone())
+        .reduce(Add::add)
+        .unwrap()
+}
+
+fn hadamard_prod_vector<T>(lhs: &Vec<T>, rhs: &Vec<T>) -> Vec<T>
+where
+    T: Clone + Mul<Output = T>,
+{
+    lhs.iter()
+        .zip(rhs.iter())
+        .map(|(x, y)| x.clone() * y.clone())
+        .collect()
+}
+
+fn neg_vector<T>(vec: &Vec<T>) -> Vec<T>
+where
+    T: Clone + Neg<Output = T>,
+{
+    vec.iter().map(|x| -x.clone()).collect()
+}
+
+fn add_assign_vector<T>(lhs: &mut Vec<T>, rhs: &Vec<T>)
+where
+    T: Clone + AddAssign<T>,
+{
+    lhs.iter_mut()
+        .zip(rhs.iter())
+        .for_each(|(x, y)| *x += y.clone());
+}
+
+fn sub_assign_vector<T>(lhs: &mut Vec<T>, rhs: &Vec<T>)
+where
+    T: Clone + SubAssign<T>,
+{
+    lhs.iter_mut()
+        .zip(rhs.iter())
+        .for_each(|(x, y)| *x -= y.clone());
+}
+
+fn convert_type_vector<T, U>(vec: &Vec<T>) -> Vec<U>
+where
+    T: Clone,
+    U: From<T>,
+{
+    vec.iter().map(|x| U::from(x.clone())).collect()
+}
+
+fn check_zero_vector<T>(vec: &Vec<T>) -> bool
+where
+    T: Zero,
+{
+    vec.iter().all(|x| x.is_zero())
+}
+
+fn add_matrix<T>(lhs: &MatByVec<T>, rhs: &MatByVec<T>) -> MatByVec<T>
+where
+    T: Clone + Add<Output = T>,
+{
+    lhs.iter()
+        .zip(rhs.iter())
+        .map(|(x, y)| add_vector(x, y))
+        .collect()
+}
+
+fn sub_matrix<T>(lhs: &MatByVec<T>, rhs: &MatByVec<T>) -> MatByVec<T>
+where
+    T: Clone + Sub<Output = T>,
+{
+    lhs.iter()
+        .zip(rhs.iter())
+        .map(|(x, y)| sub_vector(x, y))
+        .collect()
+}
+
+fn hadamard_prod_matrix<T>(lhs: &MatByVec<T>, rhs: &MatByVec<T>) -> MatByVec<T>
+where
+    T: Clone + Mul<Output = T>,
+{
+    lhs.iter()
+        .zip(rhs.iter())
+        .map(|(x, y)| hadamard_prod_vector(x, y))
+        .collect()
+}
+
+fn neg_matrix<T>(mat: &MatByVec<T>) -> MatByVec<T>
+where
+    T: Clone + Neg<Output = T>,
+{
+    mat.iter().map(|x| neg_vector(x)).collect()
+}
+
+fn add_assign_matrix<T>(lhs: &mut MatByVec<T>, rhs: &MatByVec<T>)
+where
+    T: Clone + AddAssign,
+{
+    lhs.iter_mut()
+        .zip(rhs.iter())
+        .for_each(|(x, y)| add_assign_vector(x, y));
+}
+
+fn sub_assign_matrix<T>(lhs: &mut MatByVec<T>, rhs: &MatByVec<T>)
+where
+    T: Clone + SubAssign,
+{
+    lhs.iter_mut()
+        .zip(rhs.iter())
+        .for_each(|(x, y)| sub_assign_vector(x, y));
+}
+
+fn mul_matrix_cell<T>(lhs: &MatByVec<T>, rhs: &MatByVec<T>, pos: (usize, usize)) -> T
+where
+    T: Clone + Add<Output = T> + Mul<Output = T>,
+{
+    (0..lhs[0].len())
+        .map(|i| lhs[pos.0][i].clone() * rhs[i][pos.1].clone())
+        .reduce(Add::add)
+        .unwrap()
+}
+
+fn mul_matrix_row<T>(lhs: &MatByVec<T>, rhs: &MatByVec<T>, idx: usize) -> Vec<T>
+where
+    T: Clone + Add<Output = T> + Mul<Output = T>,
+{
+    (0..rhs[0].len())
+        .map(|i| mul_matrix_cell(lhs, rhs, (idx, i)))
+        .collect()
+}
+
+fn mul_matrix<T>(lhs: &MatByVec<T>, rhs: &MatByVec<T>) -> MatByVec<T>
+where
+    T: Clone + Add<Output = T> + Mul<Output = T>,
+{
+    (0..lhs.len())
+        .map(|i| mul_matrix_row(lhs, rhs, i))
+        .collect()
+}
+
+fn convert_type_matrix<T, U>(mat: &MatByVec<T>) -> MatByVec<U>
+where
+    T: Clone,
+    U: From<T>,
+{
+    mat.iter().map(|x| convert_type_vector(x)).collect()
+}
+
+fn check_zero_matrix<T>(mat: &MatByVec<T>) -> bool
+where
+    T: Zero,
+{
+    mat.iter().all(|x| check_zero_vector(x))
+}
+
+fn map_vector<T, U, F>(vec: &Vec<T>, f: &F) -> Vec<U>
+where
+    F: Fn(&T) -> U,
+{
+    vec.iter().map(|x| f(x)).collect()
+}
+
+fn map_matrix<T, U, F>(mat: &MatByVec<T>, f: &F) -> MatByVec<U>
+where
+    F: Fn(&T) -> U,
+{
+    mat.iter().map(|x| map_vector(x, f)).collect()
 }
