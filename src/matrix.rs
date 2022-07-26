@@ -359,6 +359,182 @@ where
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Vector<T>(Vec<T>);
+
+impl<T> Vector<T> {
+    pub fn len(&self) -> usize {
+        self.0.len()
+    }
+
+    pub fn get(&self, idx: usize) -> &T {
+        &self.0[idx]
+    }
+
+    pub fn set(&mut self, idx: usize, elem: T) {
+        self.0[idx] = elem;
+    }
+
+    pub fn vec(&self) -> &Vec<T> {
+        &self.0
+    }
+
+    pub fn to_vec(self) -> Vec<T> {
+        self.0
+    }
+
+    pub fn convert_type<U>(&self) -> Vector<U>
+    where
+        T: Clone,
+        U: From<T>,
+    {
+        Vector(convert_type_vector(self.vec()))
+    }
+}
+
+impl<T> From<Vec<T>> for Vector<T> {
+    fn from(vec: Vec<T>) -> Self {
+        assert_ne!(vec.len(), 0, "The length of the vector must be at least 1.");
+
+        Self(vec)
+    }
+}
+
+impl<T> Vector<T>
+where
+    T: Clone + Zero,
+{
+    pub fn zero(n: usize) -> Self {
+        assert_ne!(n, 0, "The length of the vector must be at least 1.");
+
+        Self(vec![T::zero(); n])
+    }
+}
+
+impl<T> Vector<T>
+where
+    T: Clone + One,
+{
+    pub fn one(n: usize) -> Self {
+        assert_ne!(n, 0, "The length of the vector must be at least 1.");
+
+        Self(vec![T::one(); n])
+    }
+}
+
+impl<T> Vector<T>
+where
+    T: Clone,
+{
+    pub fn fill(n: usize, elem: &T) -> Self {
+        assert_ne!(n, 0, "The length of the vector must be at least 1.");
+
+        Self(vec![elem.clone(); n])
+    }
+}
+
+impl<T> Vector<T>
+where
+    T: Clone + Zero + One,
+{
+    pub fn identity(n: usize, idx: usize) -> Self {
+        assert_ne!(n, 0, "The length of the vector must be at least 1.");
+
+        let mut output_mat = vec![T::zero(); n];
+        output_mat[idx] = T::one();
+
+        Self(output_mat)
+    }
+}
+
+impl<T> Add for &Vector<T>
+where
+    T: Clone + Add<Output = T>,
+{
+    type Output = Vector<T>;
+
+    fn add(self, rhs: Self) -> Self::Output {
+        Vector(add_vector(&self.vec(), rhs.vec()))
+    }
+}
+
+impl<T> Sub for &Vector<T>
+where
+    T: Clone + Sub<Output = T>,
+{
+    type Output = Vector<T>;
+
+    fn sub(self, rhs: Self) -> Self::Output {
+        Vector(sub_vector(self.vec(), rhs.vec()))
+    }
+}
+
+impl<T> Mul for &Vector<T>
+where
+    T: Clone + Mul<Output = T>,
+{
+    type Output = Vector<T>;
+
+    fn mul(self, rhs: Self) -> Self::Output {
+        Vector(mul_vector(self.vec(), rhs.vec()))
+    }
+}
+
+impl<T> AddAssign<&Vector<T>> for Vector<T>
+where
+    T: Clone + AddAssign,
+{
+    fn add_assign(&mut self, rhs: &Vector<T>) {
+        add_assign_vector(&mut self.0, rhs.vec())
+    }
+}
+
+impl<T> SubAssign<&Vector<T>> for Vector<T>
+where
+    T: Clone + SubAssign,
+{
+    fn sub_assign(&mut self, rhs: &Vector<T>) {
+        sub_assign_vector(&mut self.0, rhs.vec())
+    }
+}
+
+impl<T> MulAssign<&Vector<T>> for Vector<T>
+where
+    T: Clone + MulAssign,
+{
+    fn mul_assign(&mut self, rhs: &Vector<T>) {
+        mul_assign_vector(&mut self.0, rhs.vec())
+    }
+}
+
+impl<T> Neg for &Vector<T>
+where
+    T: Clone + Neg<Output = T>,
+{
+    type Output = Vector<T>;
+
+    fn neg(self) -> Self::Output {
+        Vector(neg_vector(&self.0))
+    }
+}
+
+pub trait VecInnerProd<RHS> {
+    type Output;
+
+    fn inner_prod(&self, rhs: RHS) -> Self::Output;
+}
+
+impl<T> VecInnerProd<&Vector<T>> for Vector<T>
+where
+    T: Clone + Add<Output = T> + Mul<Output = T>,
+{
+    type Output = T;
+
+    fn inner_prod(&self, rhs: &Vector<T>) -> T {
+        inner_prod_vector(&self.0, &rhs.0)
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Matrix<T>(MatByVec<T>);
 
 impl<T> Matrix<T> {
@@ -602,182 +778,6 @@ where
         }
 
         output_mat
-    }
-}
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct Vector<T>(Vec<T>);
-
-impl<T> Vector<T> {
-    pub fn len(&self) -> usize {
-        self.0.len()
-    }
-
-    pub fn get(&self, idx: usize) -> &T {
-        &self.0[idx]
-    }
-
-    pub fn set(&mut self, idx: usize, elem: T) {
-        self.0[idx] = elem;
-    }
-
-    pub fn vec(&self) -> &Vec<T> {
-        &self.0
-    }
-
-    pub fn to_vec(self) -> Vec<T> {
-        self.0
-    }
-
-    pub fn convert_type<U>(&self) -> Vector<U>
-    where
-        T: Clone,
-        U: From<T>,
-    {
-        Vector(convert_type_vector(self.vec()))
-    }
-}
-
-impl<T> From<Vec<T>> for Vector<T> {
-    fn from(vec: Vec<T>) -> Self {
-        assert_ne!(vec.len(), 0, "The length of the vector must be at least 1.");
-
-        Self(vec)
-    }
-}
-
-impl<T> Vector<T>
-where
-    T: Clone + Zero,
-{
-    pub fn zero(n: usize) -> Self {
-        assert_ne!(n, 0, "The length of the vector must be at least 1.");
-
-        Self(vec![T::zero(); n])
-    }
-}
-
-impl<T> Vector<T>
-where
-    T: Clone + One,
-{
-    pub fn one(n: usize) -> Self {
-        assert_ne!(n, 0, "The length of the vector must be at least 1.");
-
-        Self(vec![T::one(); n])
-    }
-}
-
-impl<T> Vector<T>
-where
-    T: Clone,
-{
-    pub fn fill(n: usize, elem: &T) -> Self {
-        assert_ne!(n, 0, "The length of the vector must be at least 1.");
-
-        Self(vec![elem.clone(); n])
-    }
-}
-
-impl<T> Vector<T>
-where
-    T: Clone + Zero + One,
-{
-    pub fn identity(n: usize, idx: usize) -> Self {
-        assert_ne!(n, 0, "The length of the vector must be at least 1.");
-
-        let mut output_mat = vec![T::zero(); n];
-        output_mat[idx] = T::one();
-
-        Self(output_mat)
-    }
-}
-
-impl<T> Add for &Vector<T>
-where
-    T: Clone + Add<Output = T>,
-{
-    type Output = Vector<T>;
-
-    fn add(self, rhs: Self) -> Self::Output {
-        Vector(add_vector(&self.vec(), rhs.vec()))
-    }
-}
-
-impl<T> Sub for &Vector<T>
-where
-    T: Clone + Sub<Output = T>,
-{
-    type Output = Vector<T>;
-
-    fn sub(self, rhs: Self) -> Self::Output {
-        Vector(sub_vector(self.vec(), rhs.vec()))
-    }
-}
-
-impl<T> Mul for &Vector<T>
-where
-    T: Clone + Mul<Output = T>,
-{
-    type Output = Vector<T>;
-
-    fn mul(self, rhs: Self) -> Self::Output {
-        Vector(mul_vector(self.vec(), rhs.vec()))
-    }
-}
-
-impl<T> AddAssign<&Vector<T>> for Vector<T>
-where
-    T: Clone + AddAssign,
-{
-    fn add_assign(&mut self, rhs: &Vector<T>) {
-        add_assign_vector(&mut self.0, rhs.vec())
-    }
-}
-
-impl<T> SubAssign<&Vector<T>> for Vector<T>
-where
-    T: Clone + SubAssign,
-{
-    fn sub_assign(&mut self, rhs: &Vector<T>) {
-        sub_assign_vector(&mut self.0, rhs.vec())
-    }
-}
-
-impl<T> MulAssign<&Vector<T>> for Vector<T>
-where
-    T: Clone + MulAssign,
-{
-    fn mul_assign(&mut self, rhs: &Vector<T>) {
-        mul_assign_vector(&mut self.0, rhs.vec())
-    }
-}
-
-impl<T> Neg for &Vector<T>
-where
-    T: Clone + Neg<Output = T>,
-{
-    type Output = Vector<T>;
-
-    fn neg(self) -> Self::Output {
-        Vector(neg_vector(&self.0))
-    }
-}
-
-pub trait VecInnerProd<RHS> {
-    type Output;
-
-    fn inner_prod(&self, rhs: RHS) -> Self::Output;
-}
-
-impl<T> VecInnerProd<&Vector<T>> for Vector<T>
-where
-    T: Clone + Add<Output = T> + Mul<Output = T>,
-{
-    type Output = T;
-
-    fn inner_prod(&self, rhs: &Vector<T>) -> T {
-        inner_prod_vector(&self.0, &rhs.0)
     }
 }
 
