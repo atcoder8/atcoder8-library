@@ -342,7 +342,7 @@ where
         .unwrap()
 }
 
-#[derive(Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Matrix<T>(MatByVec<T>);
 
 impl<T> Matrix<T> {
@@ -581,7 +581,7 @@ where
     }
 }
 
-#[derive(Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Vector<T>(Vec<T>);
 
 impl<T> Vector<T> {
@@ -762,5 +762,27 @@ where
                 .map(|x| inner_prod_vector(x, &rhs.0))
                 .collect(),
         )
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn pow_identity_test() {
+        let mat = Matrix::<u8>::identity(10);
+        assert_eq!(mat.pow(2e18 as u64), mat);
+    }
+
+    #[test]
+    fn pow_test() {
+        let mat = Matrix::from(vec![vec![3, -1, 4], vec![-1, 5, -9], vec![2, 6, 5]]);
+        let pow3_mat = Matrix::from(vec![
+            vec![120, 308, 133],
+            vec![-238, -678, -322],
+            vec![-70, 154, -587],
+        ]);
+        assert_eq!(mat.pow(3), pow3_mat);
     }
 }
