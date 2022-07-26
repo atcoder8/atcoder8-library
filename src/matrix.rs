@@ -1,6 +1,6 @@
 use num::{One, Zero};
 use num_traits::Pow;
-use std::ops::{Add, AddAssign, Mul, MulAssign, Neg, Sub, SubAssign};
+use std::ops::{Add, AddAssign, BitAnd, Mul, MulAssign, Neg, ShrAssign, Sub, SubAssign};
 
 pub type MatByVec<T> = Vec<Vec<T>>;
 
@@ -351,6 +351,10 @@ impl<T> Matrix<T> {
         (mat.len(), mat[0].len())
     }
 
+    pub fn is_square(&self) -> bool {
+        self.0.len() == self.0[0].len()
+    }
+
     pub fn get(&self, indexes: (usize, usize)) -> &T {
         &self.0[indexes.0][indexes.1]
     }
@@ -545,41 +549,37 @@ where
     }
 }
 
-macro_rules! impl_pow_for_matrix {
-    ($($exp_type:tt),*) => {
-        $(
-            impl<T> Pow<$exp_type> for &Matrix<T>
-            where
-                T: Clone + Zero + One + Mul,
-            {
-                type Output = Matrix<T>;
+impl<EXP, T> Pow<EXP> for &Matrix<T>
+where
+    EXP: Clone + PartialOrd + Zero + One + BitAnd<Output = EXP> + ShrAssign,
+    T: Clone + Zero + One + Add<Output = T> + Mul<Output = T>,
+{
+    type Output = Matrix<T>;
 
-                fn pow(self, rhs: $exp_type) -> Self::Output {
-                    let (r, c) = self.shape();
+    fn pow(self, rhs: EXP) -> Self::Output {
+        assert!(
+            rhs >= EXP::zero(),
+            "The exponent must be greater than or equal to 0."
+        );
+        assert!(self.is_square(), "It must be a square matrix.");
 
-                    assert_eq!(r, c, "It must be a square matrix.");
+        let mut output_mat = Matrix::<T>::identity(self.0.len());
 
-                    let mut output_mat = Matrix::<T>::identity(r);
+        let mut mul = self.clone();
 
-                    let mut mul = self.clone();
-
-                    let mut x = rhs;
-                    while x != 0 {
-                        if x & 1 == 1 {
-                            output_mat = output_mat.prod(&mul);
-                        }
-                        mul = mul.prod(&mul);
-                        x >>= 1;
-                    }
-
-                    output_mat
-                }
+        let mut x = rhs.clone();
+        while x > EXP::zero() {
+            if !(x.clone() & EXP::one()).is_zero() {
+                output_mat = output_mat.prod(&mul);
             }
-        )*
-    };
-}
 
-impl_pow_for_matrix!(u8, u16, u32, u64, u128, usize);
+            mul = mul.prod(&mul);
+            x >>= EXP::one();
+        }
+
+        output_mat
+    }
+}
 
 #[derive(Clone, PartialEq, Eq)]
 pub struct Vector<T>(Vec<T>);
