@@ -2,15 +2,17 @@
 //! for a sequence of numbers with `n` elements:
 //! * Update one element
 //! * Calculate the sum of the elements of a range
+//! * Gets the elements of a number sequence.
 
-use std::ops::{AddAssign, RangeBounds, Sub};
+use std::ops::{AddAssign, RangeBounds, Sub, SubAssign};
 
 /// # Examples
 ///
 /// ```
 /// use atcoder8_library::fenwick_tree::FenwickTree;
 ///
-/// let ft = FenwickTree::<u32>::new(5);
+/// let ft = FenwickTree::from(vec![3, -1, 4, 1, -5, 9, 2]);
+/// assert_eq!(ft.sum(2..), 11);
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct FenwickTree<T>(Vec<T>)
@@ -26,8 +28,8 @@ where
     /// ```
     /// use atcoder8_library::fenwick_tree::FenwickTree;
     ///
-    /// let ft = FenwickTree::from(vec![3, -1, 4, -1, 5, 9, 2]);
-    /// assert_eq!(ft.sum(2..6), 17);
+    /// let ft = FenwickTree::from(vec![3, -1, 4, 1, -5, 9, 2]);
+    /// assert_eq!(ft.sum(2..6), 9);
     /// ```
     fn from(t: Vec<T>) -> Self {
         let mut ft = FenwickTree::new(t.len());
@@ -65,11 +67,11 @@ where
     /// ```
     /// use atcoder8_library::fenwick_tree::FenwickTree;
     ///
-    /// let mut ft = FenwickTree::<u32>::from(vec![3, 1, 4, 1, 5, 9, 2]);
-    /// assert_eq!(ft.sum(2..6), 19);
+    /// let mut ft = FenwickTree::from(vec![3, -1, 4, 1, -5, 9, 2]);
+    /// assert_eq!(ft.sum(2..6), 9);
     ///
     /// ft.add(3, 100);
-    /// assert_eq!(ft.sum(2..6), 119);
+    /// assert_eq!(ft.sum(2..6), 109);
     /// ```
     pub fn add(&mut self, p: usize, x: T) {
         let FenwickTree(data) = self;
@@ -82,6 +84,29 @@ where
             data[p - 1] += x.clone();
             p += p & p.overflowing_neg().0;
         }
+    }
+
+    /// Sets `x` to the `p`-th element.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use atcoder8_library::fenwick_tree::FenwickTree;
+    ///
+    /// let mut ft = FenwickTree::from(vec![3, -1, 4, 1, -5, 9, 2]);
+    /// assert_eq!(ft.sum(2..6), 9);
+    ///
+    /// ft.set(3, 100);
+    /// assert_eq!(ft.sum(2..6), 108);
+    /// ```
+    pub fn set(&mut self, p: usize, x: T) {
+        let FenwickTree(data) = self;
+        let n = data.len();
+
+        assert!(p < n);
+
+        let t = x - self.get(p);
+        self.add(p, t);
     }
 
     /// Compute the sum of the range [0, r).
@@ -102,8 +127,11 @@ where
     /// ```
     /// use atcoder8_library::fenwick_tree::FenwickTree;
     ///
-    /// let ft = FenwickTree::from(vec![3, -1, 4, -1, 5, 9, 2]);
-    /// assert_eq!(ft.sum(2..6), 17);
+    /// let ft = FenwickTree::from(vec![3, -1, 4, 1, -5, 9, 2]);
+    /// assert_eq!(ft.sum(..), 13);
+    /// assert_eq!(ft.sum(2..), 11);
+    /// assert_eq!(ft.sum(..6), 11);
+    /// assert_eq!(ft.sum(2..6), 9);
     /// ```
     pub fn sum<R>(&self, rng: R) -> T
     where
@@ -145,5 +173,36 @@ where
         assert!(p < self.0.len());
 
         self.sum(p..=p)
+    }
+}
+
+impl<T> FenwickTree<T>
+where
+    T: Clone + Default + Sub<T, Output = T> + AddAssign<T> + SubAssign<T>,
+{
+    /// Subtract `x` from the `p`-th element.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use atcoder8_library::fenwick_tree::FenwickTree;
+    ///
+    /// let mut ft = FenwickTree::<u32>::from(vec![3, 1, 4, 1, 5, 9, 2]);
+    /// assert_eq!(ft.sum(2..6), 19);
+    ///
+    /// ft.sub(3, 1);
+    /// assert_eq!(ft.sum(2..6), 18);
+    /// ```
+    pub fn sub(&mut self, p: usize, x: T) {
+        let FenwickTree(data) = self;
+        let n = data.len();
+
+        assert!(p < n);
+
+        let mut p = p + 1;
+        while p <= n {
+            data[p - 1] -= x.clone();
+            p += p & p.overflowing_neg().0;
+        }
     }
 }
