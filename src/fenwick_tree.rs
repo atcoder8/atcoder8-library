@@ -132,6 +132,7 @@ where
     /// assert_eq!(ft.sum(2..), 11);
     /// assert_eq!(ft.sum(..6), 11);
     /// assert_eq!(ft.sum(2..6), 9);
+    /// assert_eq!(ft.sum(6..2), 0);
     /// ```
     pub fn sum<R>(&self, rng: R) -> T
     where
@@ -145,17 +146,19 @@ where
             std::ops::Bound::Unbounded => 0,
         };
 
-        assert!(l <= n);
-
         let r = match rng.end_bound() {
             std::ops::Bound::Included(&end_bound) => end_bound + 1,
             std::ops::Bound::Excluded(&end_bound) => end_bound,
             std::ops::Bound::Unbounded => n,
         };
 
-        assert!(r <= n);
+        assert!(l <= n && r <= n);
 
-        self.inner_sum(r) - self.inner_sum(l)
+        if l >= r {
+            T::default()
+        } else {
+            self.inner_sum(r) - self.inner_sum(l)
+        }
     }
 
     /// Returns the value of an element in a sequence of numbers.
