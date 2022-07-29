@@ -129,4 +129,21 @@ where
 
         self.inner_sum(r) - self.inner_sum(l)
     }
+
+    /// Returns the value of an element in a sequence of numbers.
+    /// Calculate the total of the range.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use atcoder8_library::fenwick_tree::FenwickTree;
+    ///
+    /// let ft = FenwickTree::from(vec![3, -1, 4, -1, 5]);
+    /// assert_eq!(ft.get(2), 4);
+    /// ```
+    pub fn get(&self, p: usize) -> T {
+        assert!(p < self.0.len());
+
+        self.sum(p..=p)
+    }
 }
