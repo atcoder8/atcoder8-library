@@ -65,7 +65,11 @@ where
     /// ```
     /// use atcoder8_library::fenwick_tree::FenwickTree;
     ///
-    /// let ft = FenwickTree::<u32>::new(5);
+    /// let mut ft = FenwickTree::<u32>::from(vec![3, 1, 4, 1, 5, 9, 2]);
+    /// assert_eq!(ft.sum(2..6), 19);
+    ///
+    /// ft.add(3, 100);
+    /// assert_eq!(ft.sum(2..6), 119);
     /// ```
     pub fn add(&mut self, p: usize, x: T) {
         let FenwickTree(data) = self;
@@ -92,7 +96,7 @@ where
     }
 
     /// Calculate the total of the range.
-    /// 
+    ///
     /// # Examples
     ///
     /// ```
