@@ -40,7 +40,7 @@ Wrong Answer on Test #{}
 
     /// Generate test cases.
     pub fn generator() -> Input {
-        // let rng = rand::thread_rng();
+        // let mut rng = rand::thread_rng();
 
         Input()
     }
