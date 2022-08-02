@@ -1,13 +1,11 @@
 /// Module for testing
 #[cfg(test)]
 mod random_test {
-    /// Tuple of input data
-    #[derive(Debug, Clone)]
-    pub struct Input();
+    /// Input data type
+    type Input = ();
 
-    /// Tuple of Output data
-    #[derive(Debug, PartialEq, Eq)]
-    pub struct Output();
+    /// Output data type
+    type Output = ();
 
     /// Perform the specified number of tests.
     #[test]
@@ -21,7 +19,7 @@ mod random_test {
 
             assert_eq!(
                 jury_output, solve_output,
-                "\
+                "
 Wrong Answer on Test #{}
 
 [Input]
@@ -42,22 +40,20 @@ Wrong Answer on Test #{}
     pub fn generator() -> Input {
         // let mut rng = rand::thread_rng();
 
-        Input()
+        ()
     }
 
     /// Returns the correct answer.
     pub fn jury(input: Input) -> Output {
-        // Unpacking input.
-        let Input() = input;
+        let () = input;
 
-        Output()
+        ()
     }
 
     /// Test this program.
     pub fn solve(input: Input) -> Output {
-        // Unpacking input.
-        let Input() = input;
+        let () = input;
 
-        Output()
+        ()
     }
 }
