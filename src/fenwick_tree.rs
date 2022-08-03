@@ -117,7 +117,7 @@ where
             s += self.0[r - 1].clone();
             r -= r & r.overflowing_neg().0;
         }
-        return s;
+        s
     }
 
     /// Calculate the total of the range.
