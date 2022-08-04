@@ -14,24 +14,24 @@ mod random_test {
 
         for test_case_index in 0..NUMBER_OF_TESTS {
             let input = generator();
-            let jury_output = jury(input.clone());
-            let solve_output = solve(input.clone());
+            let expected_output = expected(input.clone());
+            let actual_output = solve(input.clone());
 
             assert_eq!(
-                jury_output, solve_output,
+                expected_output, actual_output,
                 "
 Wrong Answer on Test #{}
 
 [Input]
 {:?}
 
-[Output(Jury)]
+[Expected output]
 {:?}
 
-[Output(Solve)]
+[Actual output]
 {:?}
 ",
-                test_case_index, input, jury_output, solve_output
+                test_case_index, input, expected_output, actual_output
             );
         }
     }
@@ -43,8 +43,8 @@ Wrong Answer on Test #{}
         ()
     }
 
-    /// Returns the correct answer.
-    pub fn jury(input: Input) -> Output {
+    /// Returns expected answer.
+    pub fn expected(input: Input) -> Output {
         let () = input;
 
         ()
