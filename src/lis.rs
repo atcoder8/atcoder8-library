@@ -161,7 +161,7 @@ mod tests {
         (0..n).map(|_| rng.gen_range(0, 10)).collect()
     }
 
-    fn create_debug_output<T>(
+    fn create_debug_message<T>(
         test_case_number: usize,
         seq: &Vec<T>,
         expected_lis: &Vec<T>,
@@ -209,7 +209,7 @@ Wrong Answer on Test #{}
                 lis.lis_len(),
                 expected_lis.len(),
                 "{}",
-                create_debug_output(test_case_number, &seq, &expected_lis, lis.lis_len())
+                create_debug_message(test_case_number, &seq, &expected_lis, lis.lis_len())
             );
         }
     }
@@ -253,7 +253,7 @@ Wrong Answer on Test #{}
                 lis.lis_len(),
                 expected_lis.len(),
                 "{}",
-                create_debug_output(test_case_number, &seq, &expected_lis, lis.lis_len())
+                create_debug_message(test_case_number, &seq, &expected_lis, lis.lis_len())
             );
         }
     }
