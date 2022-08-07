@@ -1,5 +1,5 @@
 //! Calculates the interval sums of a numerical sequence
-//! in constant time using cumulative sums.
+//! in constant time using cumulative sum.
 
 use std::ops::{Add, RangeBounds, Sub};
 
