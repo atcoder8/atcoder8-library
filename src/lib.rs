@@ -5,3 +5,4 @@ pub mod modint;
 pub mod matrix;
 pub mod fenwick_tree;
 pub mod lis;
+pub mod cumulative_sum;
