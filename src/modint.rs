@@ -129,7 +129,7 @@ pub mod modint {
     #[macro_export]
     macro_rules! generate_modint {
         ($modint_type:tt, $modulus:literal) => {
-            #[derive(Clone, Copy, PartialEq, Eq)]
+            #[derive(Debug, Clone, Copy, PartialEq, Eq)]
             pub struct $modint_type {
                 val: u32,
             }
@@ -149,7 +149,7 @@ pub mod modint {
                     Self { val }
                 }
 
-                pub fn get_val(&self) -> u32 {
+                pub fn val(&self) -> u32 {
                     self.val
                 }
 
