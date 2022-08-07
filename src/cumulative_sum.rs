@@ -1,10 +1,11 @@
-//! Calculates the interval sums of a numerical sequence using cumulative sums.
+//! Calculates the interval sums of a numerical sequence
+//! in constant time using cumulative sums.
 
 use std::ops::{Add, RangeBounds, Sub};
 
 use num::Zero;
 
-/// Calculates the interval sums of a numerical sequence using cumulative sums.
+/// Calculates the interval sum of a numerical sequence using cumulative sums.
 ///
 /// # Examples
 /// ```
