@@ -14,6 +14,17 @@ pub trait Monoid: Clone {
     fn op(a: Self, b: Self) -> Self;
 }
 
+// /// Definition of monoid
+// impl Monoid for i32 {
+//     fn e() -> Self {
+//         -1
+//     }
+
+//     fn op(a: Self, b: Self) -> Self {
+//         a.max(b)
+//     }
+// }
+
 /// # Examples
 ///
 /// ```
