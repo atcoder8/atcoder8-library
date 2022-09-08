@@ -111,4 +111,42 @@ impl EratosthenesSieve {
 
         factors
     }
+
+    /// Creates a list of divisors of `n`.
+    ///
+    /// The divisors are listed in ascending order.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use atcoder8_library::eratosthenes_sieve::EratosthenesSieve;
+    ///
+    /// let sieve = EratosthenesSieve::new(27);
+    /// assert_eq!(sieve.create_divisors_list(1), vec![1]);
+    /// assert_eq!(sieve.create_divisors_list(12), vec![1, 2, 3, 4, 6, 12]);
+    /// assert_eq!(sieve.create_divisors_list(19), vec![1, 19]);
+    /// assert_eq!(sieve.create_divisors_list(27), vec![1, 3, 9, 27]);
+    /// ```
+    pub fn create_divisors_list(&self, n: usize) -> Vec<usize> {
+        let mut divisors = vec![];
+        let prime_factors = self.prime_factorization(n);
+        let mut stack = vec![(vec![0; prime_factors.len()], 0, 1)];
+
+        while let Some((exps, skip, d)) = stack.pop() {
+            divisors.push(d);
+
+            for (i, &(p, e)) in prime_factors.iter().enumerate().skip(skip) {
+                if exps[i] < e {
+                    let mut next_exps = exps.clone();
+                    next_exps[i] += 1;
+
+                    stack.push((next_exps, i, d * p));
+                }
+            }
+        }
+
+        divisors.sort_unstable();
+
+        divisors
+    }
 }
