@@ -56,6 +56,8 @@ impl EratosthenesSieve {
     /// assert_eq!(sieve.min_divisor(27), 3);
     /// ```
     pub fn min_divisor(&self, n: usize) -> usize {
+        assert_ne!(n, 0, "`n` must be at least 1.");
+
         self.sieve[n]
     }
 
@@ -94,6 +96,8 @@ impl EratosthenesSieve {
     /// assert_eq!(sieve.prime_factorization(27), vec![(3, 3)]);
     /// ```
     pub fn prime_factorization(&self, n: usize) -> Vec<(usize, usize)> {
+        assert_ne!(n, 0, "`n` must be at least 1.");
+
         let mut factors: Vec<(usize, usize)> = vec![];
         let mut t = n;
 
@@ -128,21 +132,28 @@ impl EratosthenesSieve {
     /// assert_eq!(sieve.create_divisors_list(27), vec![1, 3, 9, 27]);
     /// ```
     pub fn create_divisors_list(&self, n: usize) -> Vec<usize> {
-        let mut divisors = vec![];
+        assert_ne!(n, 0, "`n` must be at least 1.");
+
         let prime_factors = self.prime_factorization(n);
-        let mut stack = vec![(vec![0; prime_factors.len()], 0, 1)];
 
-        while let Some((exps, skip, d)) = stack.pop() {
-            divisors.push(d);
+        let mut divisors = vec![1];
+        let divisors_num: usize = prime_factors.iter().map(|&(_, e)| e + 1).product();
+        divisors.reserve(divisors_num - 1);
 
-            for (i, &(p, e)) in prime_factors.iter().enumerate().skip(skip) {
-                if exps[i] < e {
-                    let mut next_exps = exps.clone();
-                    next_exps[i] += 1;
+        for (p, e) in prime_factors {
+            let mut add_divisors = vec![];
+            add_divisors.reserve(divisors.len() * e);
+            let mut mul = 1;
 
-                    stack.push((next_exps, i, d * p));
+            for _ in 1..=e {
+                mul *= p;
+
+                for &d in divisors.iter() {
+                    add_divisors.push(d * mul);
                 }
             }
+
+            divisors.append(&mut add_divisors);
         }
 
         divisors.sort_unstable();
