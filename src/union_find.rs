@@ -186,7 +186,7 @@ impl UnionFind {
             if let Some(&idx) = leader_to_idx.get(&leader) {
                 groups[idx].push(i);
             } else {
-                leader_to_idx.insert(groups.len(), leader);
+                leader_to_idx.insert(leader, groups.len());
                 groups.push(vec![i]);
             }
         }
