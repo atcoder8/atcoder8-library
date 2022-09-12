@@ -191,6 +191,7 @@ pub mod modint {
             impl Div for $modint_type {
                 type Output = Self;
 
+                #[allow(clippy::suspicious_arithmetic_impl)]
                 fn div(self, rhs: Self) -> Self::Output {
                     self * rhs.inv()
                 }
