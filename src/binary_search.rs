@@ -99,7 +99,7 @@ pub trait BinarySearchWithI32: Sized + RangeBounds<i32> {
     ///
     /// # Arguments
     ///
-    /// * `is_ok` - Monotonic function. Weakly monotonicity is also included.
+    /// * `is_ok` - Monotonic function.
     /// * `dec` - Indicates that `is_ok` is a monotonically decreasing function if true,
     /// or a monotonically increasing function if false.
     fn binary_search<F>(self, is_ok: F, dec: bool) -> Option<i32>
@@ -216,7 +216,7 @@ pub trait BinarySearchWithI64: Sized + RangeBounds<i64> {
     ///
     /// # Arguments
     ///
-    /// * `is_ok` - Monotonic function. Weakly monotonicity is also included.
+    /// * `is_ok` - Monotonic function.
     /// * `dec` - Indicates that `is_ok` is a monotonically decreasing function if true,
     /// or a monotonically increasing function if false.
     fn binary_search<F>(self, is_ok: F, dec: bool) -> Option<i64>
@@ -333,7 +333,7 @@ pub trait BinarySearchWithI128: Sized + RangeBounds<i128> {
     ///
     /// # Arguments
     ///
-    /// * `is_ok` - Monotonic function. Weakly monotonicity is also included.
+    /// * `is_ok` - Monotonic function.
     /// * `dec` - Indicates that `is_ok` is a monotonically decreasing function if true,
     /// or a monotonically increasing function if false.
     fn binary_search<F>(self, is_ok: F, dec: bool) -> Option<i128>
@@ -450,7 +450,7 @@ pub trait BinarySearchWithIsize: Sized + RangeBounds<isize> {
     ///
     /// # Arguments
     ///
-    /// * `is_ok` - Monotonic function. Weakly monotonicity is also included.
+    /// * `is_ok` - Monotonic function.
     /// * `dec` - Indicates that `is_ok` is a monotonically decreasing function if true,
     /// or a monotonically increasing function if false.
     fn binary_search<F>(self, is_ok: F, dec: bool) -> Option<isize>
@@ -567,7 +567,7 @@ pub trait BinarySearchWithU32: Sized + RangeBounds<u32> {
     ///
     /// # Arguments
     ///
-    /// * `is_ok` - Monotonic function. Weakly monotonicity is also included.
+    /// * `is_ok` - Monotonic function.
     /// * `dec` - Indicates that `is_ok` is a monotonically decreasing function if true,
     /// or a monotonically increasing function if false.
     fn binary_search<F>(self, is_ok: F, dec: bool) -> Option<u32>
@@ -684,7 +684,7 @@ pub trait BinarySearchWithU64: Sized + RangeBounds<u64> {
     ///
     /// # Arguments
     ///
-    /// * `is_ok` - Monotonic function. Weakly monotonicity is also included.
+    /// * `is_ok` - Monotonic function.
     /// * `dec` - Indicates that `is_ok` is a monotonically decreasing function if true,
     /// or a monotonically increasing function if false.
     fn binary_search<F>(self, is_ok: F, dec: bool) -> Option<u64>
@@ -801,7 +801,7 @@ pub trait BinarySearchWithU128: Sized + RangeBounds<u128> {
     ///
     /// # Arguments
     ///
-    /// * `is_ok` - Monotonic function. Weakly monotonicity is also included.
+    /// * `is_ok` - Monotonic function.
     /// * `dec` - Indicates that `is_ok` is a monotonically decreasing function if true,
     /// or a monotonically increasing function if false.
     fn binary_search<F>(self, is_ok: F, dec: bool) -> Option<u128>
@@ -918,7 +918,7 @@ pub trait BinarySearchWithUsize: Sized + RangeBounds<usize> {
     ///
     /// # Arguments
     ///
-    /// * `is_ok` - Monotonic function. Weakly monotonicity is also included.
+    /// * `is_ok` - Monotonic function.
     /// * `dec` - Indicates that `is_ok` is a monotonically decreasing function if true,
     /// or a monotonically increasing function if false.
     fn binary_search<F>(self, is_ok: F, dec: bool) -> Option<usize>
@@ -963,7 +963,7 @@ where
     assert!(left < right, "The interval represented by `rng` is empty.");
 
     assert!(
-        eps >= 0.0,
+        eps > 0.0,
         "Allowable margin of error must be a positive number."
     );
 
@@ -1010,7 +1010,7 @@ where
     assert!(left < right, "The interval represented by `rng` is empty.");
 
     assert!(
-        eps >= 0.0,
+        eps > 0.0,
         "Allowable margin of error must be a positive number."
     );
 
@@ -1056,7 +1056,7 @@ pub trait BinarySearchWithF32: Sized + RangeBounds<f32> {
     ///
     /// # Arguments
     ///
-    /// * `is_ok` - Monotonic function. Weakly monotonicity is also included.
+    /// * `is_ok` - Monotonic function.
     /// * `eps` - Allowable margin of error
     /// * `dec` - Indicates that `is_ok` is a monotonically decreasing function if true,
     /// or a monotonically increasing function if false.
@@ -1102,7 +1102,7 @@ where
     assert!(left < right, "The interval represented by `rng` is empty.");
 
     assert!(
-        eps >= 0.0,
+        eps > 0.0,
         "Allowable margin of error must be a positive number."
     );
 
@@ -1149,7 +1149,7 @@ where
     assert!(left < right, "The interval represented by `rng` is empty.");
 
     assert!(
-        eps >= 0.0,
+        eps > 0.0,
         "Allowable margin of error must be a positive number."
     );
 
@@ -1195,7 +1195,7 @@ pub trait BinarySearchWithF64: Sized + RangeBounds<f64> {
     ///
     /// # Arguments
     ///
-    /// * `is_ok` - Monotonic function. Weakly monotonicity is also included.
+    /// * `is_ok` - Monotonic function.
     /// * `eps` - Allowable margin of error
     /// * `dec` - Indicates that `is_ok` is a monotonically decreasing function if true,
     /// or a monotonically increasing function if false.
