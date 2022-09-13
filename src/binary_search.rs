@@ -14,12 +14,29 @@ macro_rules! impl_binary_search_with_integer {
         {
             let mut left = match rng.start_bound() {
                 std::ops::Bound::Included(&start) => start,
-                std::ops::Bound::Excluded(&start) => start + 1,
+                std::ops::Bound::Excluded(&start) => {
+                    assert!(
+                        start == std::$int_type::MAX,
+                        "The interval represented by `rng` is empty."
+                    );
+
+                    start + 1
+                }
                 std::ops::Bound::Unbounded => std::$int_type::MIN,
             };
 
             let right = match rng.end_bound() {
-                std::ops::Bound::Included(&end) => end + 1,
+                std::ops::Bound::Included(&end) => {
+                    if end == std::$int_type::MAX {
+                        if !is_ok(end) {
+                            return None;
+                        }
+
+                        end
+                    } else {
+                        end + 1
+                    }
+                }
                 std::ops::Bound::Excluded(&end) => end,
                 std::ops::Bound::Unbounded => std::$int_type::MAX,
             };
@@ -46,8 +63,7 @@ macro_rules! impl_binary_search_with_integer {
                 size -= half;
             }
 
-            let boundary = if is_ok(left) { left } else { left + 1 };
-            Some(boundary)
+            Some(left + 1)
         }
 
         fn $fn_name_for_dec<R, F>(rng: R, is_ok: F) -> Option<$int_type>
@@ -57,12 +73,29 @@ macro_rules! impl_binary_search_with_integer {
         {
             let left = match rng.start_bound() {
                 std::ops::Bound::Included(&start) => start,
-                std::ops::Bound::Excluded(&start) => start + 1,
+                std::ops::Bound::Excluded(&start) => {
+                    assert!(
+                        start == std::$int_type::MAX,
+                        "The interval represented by `rng` is empty."
+                    );
+
+                    start + 1
+                }
                 std::ops::Bound::Unbounded => std::$int_type::MIN,
             };
 
-            let right = match rng.end_bound() {
-                std::ops::Bound::Included(&end) => end + 1,
+            let mut right = match rng.end_bound() {
+                std::ops::Bound::Included(&end) => {
+                    if end == std::$int_type::MAX {
+                        if is_ok(end) {
+                            return Some(end);
+                        }
+
+                        end
+                    } else {
+                        end + 1
+                    }
+                }
                 std::ops::Bound::Excluded(&end) => end,
                 std::ops::Bound::Unbounded => std::$int_type::MAX,
             };
@@ -77,8 +110,19 @@ macro_rules! impl_binary_search_with_integer {
                 return None;
             }
 
-            let boundary = $fn_name_for_inc(rng, |mid| !is_ok(mid)).unwrap() - 1;
-            Some(boundary)
+            let mut size = right - left;
+
+            while size > 1 {
+                let half = size / 2;
+                let mid = right - half;
+
+                if !is_ok(mid) {
+                    right = mid;
+                }
+                size -= half;
+            }
+
+            Some(right - 1)
         }
 
         /// Returns the smallest integer `x` in the range `rng` for which `is_ok(x) = true`.
@@ -90,6 +134,21 @@ macro_rules! impl_binary_search_with_integer {
         /// * `is_ok` - Monotonic function.
         /// * `dec` - Indicates that `is_ok` is a monotonically decreasing function if true,
         /// or a monotonically increasing function if false.
+        ///
+        /// # Examples
+        ///
+        /// ```
+        /// use atcoder8_library::binary_search::binary_search_with_i64;
+        ///
+        /// let is_ok = |x: i64| { x.pow(2) >= 400 };
+        /// assert_eq!(binary_search_with_i64(0..100, is_ok, false), Some(20));
+        ///
+        /// let is_ok = |x: i64| { x.pow(2) >= 400 };
+        /// assert_eq!(binary_search_with_i64(0..10, is_ok, false), None);
+        ///
+        /// let is_ok = |x: i64| { x.pow(3) < -8000 };
+        /// assert_eq!(binary_search_with_i64(-100..0, is_ok, true), Some(-21));
+        /// ```
         pub fn $fn_name<R, F>(rng: R, is_ok: F, dec: bool) -> Option<$int_type>
         where
             R: RangeBounds<$int_type>,
@@ -111,6 +170,21 @@ macro_rules! impl_binary_search_with_integer {
             /// * `is_ok` - Monotonic function.
             /// * `dec` - Indicates that `is_ok` is a monotonically decreasing function if true,
             /// or a monotonically increasing function if false.
+            ///
+            /// # Examples
+            ///
+            /// ```
+            /// use atcoder8_library::binary_search::BinarySearchWithI64;
+            ///
+            /// let is_ok = |x: i64| { x.pow(2) >= 400 };
+            /// assert_eq!((0..100).binary_search(is_ok, false), Some(20));
+            ///
+            /// let is_ok = |x: i64| { x.pow(2) >= 400 };
+            /// assert_eq!((0..10).binary_search(is_ok, false), None);
+            ///
+            /// let is_ok = |x: i64| { x.pow(3) < -8000 };
+            /// assert_eq!((-100..0).binary_search(is_ok, true), Some(-21));
+            /// ```
             fn binary_search<F>(self, is_ok: F, dec: bool) -> Option<$int_type>
             where
                 F: Fn($int_type) -> bool,
