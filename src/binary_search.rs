@@ -1,5 +1,4 @@
-//! Implements binary search for range represented by
-//! integer or floating point number primitive types.
+//! Implements binary search for range represented by the Rust's built-in range type.
 
 use std::ops::{
     Range, RangeBounds, RangeFrom, RangeFull, RangeInclusive, RangeTo, RangeToInclusive,
@@ -121,14 +120,19 @@ macro_rules! impl_binary_search_with_integer {
             Some(left)
         }
 
-        /// Returns the smallest integer `x` in the range `rng` for which `is_ok(x) = true`.
-        /// If no such integer exists, returns None.
+        /// If `is_ok` is monotonically increasing, returns the smallest integer `x`
+        /// that satisfies `is_ok(x) = true` as the value of `Some`.
+        ///
+        /// If `is_ok` is monotonically decreasing, returns the largest integer `x`
+        /// that satisfies `is_ok(x) = true` as the value of `Some`.
+        ///
+        /// Returns `None` if no such integer exists in both of the above cases.
         ///
         /// # Arguments
         ///
-        /// * `rng` - Search range.
+        /// * `rng` - Domain of function `is_ok`.
         /// * `is_ok` - Monotonic function.
-        /// * `dec` - Indicates that `is_ok` is a monotonically decreasing function if true,
+        /// * `dec` - Represents that `is_ok` is a monotonically decreasing function if true,
         /// or a monotonically increasing function if false.
         ///
         /// # Examples
@@ -158,13 +162,20 @@ macro_rules! impl_binary_search_with_integer {
         }
 
         pub trait $trait_name: Sized + RangeBounds<$int_type> {
-            /// Returns the smallest integer `x` in the range for which `is_ok(x) = true`.
-            /// If no such integer exists, returns None.
+            /// Performs a binary search on the domain specified by the Rust's built-in range type.
+            ///
+            /// If `is_ok` is monotonically increasing, returns the smallest integer `x`
+            /// that satisfies `is_ok(x) = true` as the value of `Some`.
+            ///
+            /// If `is_ok` is monotonically decreasing, returns the largest integer `x`
+            /// that satisfies `is_ok(x) = true` as the value of `Some`.
+            ///
+            /// Returns `None` if no such integer exists in both of the above cases.
             ///
             /// # Arguments
             ///
             /// * `is_ok` - Monotonic function.
-            /// * `dec` - Indicates that `is_ok` is a monotonically decreasing function if true,
+            /// * `dec` - Represents that `is_ok` is a monotonically decreasing function if true,
             /// or a monotonically increasing function if false.
             ///
             /// # Examples
@@ -391,16 +402,22 @@ macro_rules! impl_binary_search_with_float {
             Some(left)
         }
 
-        /// Returns the smallest floating point number `x` in the range `rng` for which `is_ok(x) = true`.
-        /// However, an error with the true value within `eps` is allowed.
-        /// If no such floating point number exists, returns None.
+        /// If `is_ok` is monotonically increasing,
+        /// returns the smallest floating point number `x`
+        /// that satisfies `is_ok(x) = true` as the value of `Some`.
+        ///
+        /// If `is_ok` is monotonically decreasing,
+        /// returns the largest floating point number `x`
+        /// that satisfies `is_ok(x) = true` as the value of `Some`.
+        ///
+        /// Returns `None` if no such floating point number exists in both of the above cases.
         ///
         /// # Arguments
         ///
-        /// * `rng` - Search range.
+        /// * `rng` - Domain of function `is_ok`.
         /// * `is_ok` - Monotonic function.
         /// * `eps` - The allowable margin of error. It must be a positive number.
-        /// * `dec` - Indicates that `is_ok` is a monotonically decreasing function if true,
+        /// * `dec` - Represents that `is_ok` is a monotonically decreasing function if true,
         /// or a monotonically increasing function if false.
         ///
         /// # Examples
@@ -434,15 +451,23 @@ macro_rules! impl_binary_search_with_float {
         }
 
         pub trait $trait_name: Sized + RangeBounds<$float_type> {
-            /// Returns the smallest floating point number `x` in the range for which `is_ok(x) = true`.
-            /// However, an error with the true value within `eps` is allowed.
-            /// If no such floating point number exists, returns None.
+            /// Performs a binary search on the domain specified by the Rust's built-in range type.
+            ///
+            /// If `is_ok` is monotonically increasing,
+            /// returns the smallest floating point number `x`
+            /// that satisfies `is_ok(x) = true` as the value of `Some`.
+            ///
+            /// If `is_ok` is monotonically decreasing,
+            /// returns the largest floating point number `x`
+            /// that satisfies `is_ok(x) = true` as the value of `Some`.
+            ///
+            /// Returns `None` if no such floating point number exists in both of the above cases.
             ///
             /// # Arguments
             ///
             /// * `is_ok` - Monotonic function.
             /// * `eps` - The allowable margin of error. It must be a positive number.
-            /// * `dec` - Indicates that `is_ok` is a monotonically decreasing function if true,
+            /// * `dec` - Represents that `is_ok` is a monotonically decreasing function if true,
             /// or a monotonically increasing function if false.
             ///
             /// # Examples
