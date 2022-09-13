@@ -427,16 +427,14 @@ macro_rules! impl_binary_search_with_float {
         ///
         /// let is_ok = |x: f64| { x.powi(2) >= 400.0 };
         /// let ans = binary_search_with_f64(0.0..100.0, is_ok, 1e-6, false).unwrap();
-        /// println!("20.0 - ans = {}", 20.0 - ans);
-        /// assert!((20.0 - ans).abs() <= 1e-6);
+        /// assert!((ans - 20.0).abs() <= 1e-6);
         ///
         /// let is_ok = |x: f64| { x.powi(2) >= 400.0 };
         /// assert_eq!(binary_search_with_f64(0.0..10.0, is_ok, 1e-6, false), None);
         ///
         /// let is_ok = |x: f64| { x.powi(3) <= -8000.0 };
         /// let ans = binary_search_with_f64(-100.0..0.0, is_ok, 1e-6, true).unwrap();
-        /// println!("-21.0 - ans = {}", -21.0 - ans);
-        /// assert!((-20.0 - ans).abs() <= 1e-6);
+        /// assert!((ans - (-20.0)).abs() <= 1e-6);
         /// ```
         pub fn $fn_name<R, F>(rng: R, is_ok: F, eps: $float_type, dec: bool) -> Option<$float_type>
         where
@@ -477,14 +475,14 @@ macro_rules! impl_binary_search_with_float {
             ///
             /// let is_ok = |x: f64| { x.powi(2) >= 400.0 };
             /// let ans = (0.0..100.0).binary_search(is_ok, 1e-6, false).unwrap();
-            /// assert!((20.0 - ans).abs() <= 1e-6);
+            /// assert!((ans - 20.0).abs() <= 1e-6);
             ///
             /// let is_ok = |x: f64| { x.powi(2) >= 400.0 };
             /// assert_eq!((0.0..10.0).binary_search(is_ok, 1e-6, false), None);
             ///
             /// let is_ok = |x: f64| { x.powi(3) <= -8000.0 };
             /// let ans = (-100.0..0.0).binary_search(is_ok, 1e-6, true).unwrap();
-            /// assert!((-20.0 - ans).abs() <= 1e-6);
+            /// assert!((ans - (-20.0)).abs() <= 1e-6);
             /// ```
             fn binary_search<F>(self, is_ok: F, eps: $float_type, dec: bool) -> Option<$float_type>
             where
