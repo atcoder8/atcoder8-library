@@ -25,7 +25,7 @@ macro_rules! impl_binary_search_with_integer {
                 std::ops::Bound::Unbounded => std::$int_type::MIN,
             };
 
-            let right = match rng.end_bound() {
+            let mut right = match rng.end_bound() {
                 std::ops::Bound::Included(&end) => {
                     if end == std::$int_type::MAX {
                         if !is_ok(end) {
@@ -51,19 +51,17 @@ macro_rules! impl_binary_search_with_integer {
                 return None;
             }
 
-            let mut size = right - left;
+            while right - left > 1 {
+                let mid = left + (right - left) / 2;
 
-            while size > 1 {
-                let half = size / 2;
-                let mid = left + half;
-
-                if !is_ok(mid) {
+                if is_ok(mid) {
+                    right = mid;
+                } else {
                     left = mid;
                 }
-                size -= half;
             }
 
-            Some(left + 1)
+            Some(right)
         }
 
         fn $fn_name_for_dec<R, F>(rng: R, is_ok: F) -> Option<$int_type>
@@ -71,7 +69,7 @@ macro_rules! impl_binary_search_with_integer {
             R: RangeBounds<$int_type>,
             F: Fn($int_type) -> bool,
         {
-            let left = match rng.start_bound() {
+            let mut left = match rng.start_bound() {
                 std::ops::Bound::Included(&start) => start,
                 std::ops::Bound::Excluded(&start) => {
                     assert!(
@@ -110,19 +108,17 @@ macro_rules! impl_binary_search_with_integer {
                 return None;
             }
 
-            let mut size = right - left;
+            while right - left > 1 {
+                let mid = left + (right - left) / 2;
 
-            while size > 1 {
-                let half = size / 2;
-                let mid = right - half;
-
-                if !is_ok(mid) {
+                if is_ok(mid) {
+                    left = mid;
+                } else {
                     right = mid;
                 }
-                size -= half;
             }
 
-            Some(right - 1)
+            Some(left)
         }
 
         /// Returns the smallest integer `x` in the range `rng` for which `is_ok(x) = true`.
@@ -316,7 +312,7 @@ macro_rules! impl_binary_search_with_float {
                 std::ops::Bound::Unbounded => std::$float_type::MIN,
             };
 
-            let right = match rng.end_bound() {
+            let mut right = match rng.end_bound() {
                 std::ops::Bound::Included(&end) => end,
                 std::ops::Bound::Excluded(&end) => end,
                 std::ops::Bound::Unbounded => std::$float_type::MAX,
@@ -337,16 +333,14 @@ macro_rules! impl_binary_search_with_float {
                 return None;
             }
 
-            let mut size = right - left;
+            while right - left > eps {
+                let mid = right - (right - left) / 2.0;
 
-            while size > eps {
-                let half = size / 2.0;
-                let mid = left + half;
-
-                if !is_ok(mid) {
+                if is_ok(mid) {
+                    right = mid;
+                } else {
                     left = mid;
                 }
-                size -= half;
             }
 
             Some(right)
@@ -357,7 +351,7 @@ macro_rules! impl_binary_search_with_float {
             R: RangeBounds<$float_type>,
             F: Fn($float_type) -> bool,
         {
-            let left = match rng.start_bound() {
+            let mut left = match rng.start_bound() {
                 std::ops::Bound::Included(&start) => start,
                 std::ops::Bound::Excluded(&start) => start,
                 std::ops::Bound::Unbounded => std::$float_type::MIN,
@@ -384,16 +378,14 @@ macro_rules! impl_binary_search_with_float {
                 return None;
             }
 
-            let mut size = right - left;
+            while (right - left) > eps {
+                let mid = right - (right - left) / 2.0;
 
-            while size > eps {
-                let half = size / 2.0;
-                let mid = right - half;
-
-                if !is_ok(mid) {
+                if is_ok(mid) {
+                    left = mid;
+                } else {
                     right = mid;
                 }
-                size -= half;
             }
 
             Some(left)
@@ -407,9 +399,28 @@ macro_rules! impl_binary_search_with_float {
         ///
         /// * `rng` - Search range.
         /// * `is_ok` - Monotonic function.
-        /// * `eps` - Allowable margin of error.
+        /// * `eps` - The allowable margin of error. It must be a positive number.
         /// * `dec` - Indicates that `is_ok` is a monotonically decreasing function if true,
         /// or a monotonically increasing function if false.
+        ///
+        /// # Examples
+        ///
+        /// ```
+        /// use atcoder8_library::binary_search::binary_search_with_f64;
+        ///
+        /// let is_ok = |x: f64| { x.powi(2) >= 400.0 };
+        /// let ans = binary_search_with_f64(0.0..100.0, is_ok, 1e-6, false).unwrap();
+        /// println!("20.0 - ans = {}", 20.0 - ans);
+        /// assert!((20.0 - ans).abs() <= 1e-6);
+        ///
+        /// let is_ok = |x: f64| { x.powi(2) >= 400.0 };
+        /// assert_eq!(binary_search_with_f64(0.0..10.0, is_ok, 1e-6, false), None);
+        ///
+        /// let is_ok = |x: f64| { x.powi(3) <= -8000.0 };
+        /// let ans = binary_search_with_f64(-100.0..0.0, is_ok, 1e-6, true).unwrap();
+        /// println!("-21.0 - ans = {}", -21.0 - ans);
+        /// assert!((-20.0 - ans).abs() <= 1e-6);
+        /// ```
         pub fn $fn_name<R, F>(rng: R, is_ok: F, eps: $float_type, dec: bool) -> Option<$float_type>
         where
             R: RangeBounds<$float_type>,
@@ -430,9 +441,26 @@ macro_rules! impl_binary_search_with_float {
             /// # Arguments
             ///
             /// * `is_ok` - Monotonic function.
-            /// * `eps` - Allowable margin of error.
+            /// * `eps` - The allowable margin of error. It must be a positive number.
             /// * `dec` - Indicates that `is_ok` is a monotonically decreasing function if true,
             /// or a monotonically increasing function if false.
+            ///
+            /// # Examples
+            ///
+            /// ```
+            /// use atcoder8_library::binary_search::BinarySearchWithF64;
+            ///
+            /// let is_ok = |x: f64| { x.powi(2) >= 400.0 };
+            /// let ans = (0.0..100.0).binary_search(is_ok, 1e-6, false).unwrap();
+            /// assert!((20.0 - ans).abs() <= 1e-6);
+            ///
+            /// let is_ok = |x: f64| { x.powi(2) >= 400.0 };
+            /// assert_eq!((0.0..10.0).binary_search(is_ok, 1e-6, false), None);
+            ///
+            /// let is_ok = |x: f64| { x.powi(3) <= -8000.0 };
+            /// let ans = (-100.0..0.0).binary_search(is_ok, 1e-6, true).unwrap();
+            /// assert!((-20.0 - ans).abs() <= 1e-6);
+            /// ```
             fn binary_search<F>(self, is_ok: F, eps: $float_type, dec: bool) -> Option<$float_type>
             where
                 F: Fn($float_type) -> bool,
