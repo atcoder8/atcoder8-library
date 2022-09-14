@@ -348,13 +348,13 @@ macro_rules! impl_binary_search_with_float {
                 let mid = right - (right - left) / 2.0;
 
                 if is_ok(mid) {
-                    if right == mid {
+                    if mid >= right {
                         return None;
                     }
 
                     right = mid;
                 } else {
-                    if left == mid {
+                    if mid <= left {
                         return None;
                     }
 
@@ -401,13 +401,13 @@ macro_rules! impl_binary_search_with_float {
                 let mid = right - (right - left) / 2.0;
 
                 if is_ok(mid) {
-                    if left == mid {
+                    if mid <= left {
                         return None;
                     }
 
                     left = mid;
                 } else {
-                    if right == mid {
+                    if mid >= right {
                         return None;
                     }
 
