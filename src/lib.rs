@@ -9,3 +9,4 @@ pub mod segment_tree;
 pub mod eratosthenes_sieve;
 pub mod union_find;
 pub mod binary_search;
+pub mod functions;
