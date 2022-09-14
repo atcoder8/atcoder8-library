@@ -348,8 +348,16 @@ macro_rules! impl_binary_search_with_float {
                 let mid = right - (right - left) / 2.0;
 
                 if is_ok(mid) {
+                    if right == mid {
+                        return None;
+                    }
+
                     right = mid;
                 } else {
+                    if left == mid {
+                        return None;
+                    }
+
                     left = mid;
                 }
             }
@@ -393,8 +401,16 @@ macro_rules! impl_binary_search_with_float {
                 let mid = right - (right - left) / 2.0;
 
                 if is_ok(mid) {
+                    if left == mid {
+                        return None;
+                    }
+
                     left = mid;
                 } else {
+                    if right == mid {
+                        return None;
+                    }
+
                     right = mid;
                 }
             }
@@ -411,12 +427,14 @@ macro_rules! impl_binary_search_with_float {
         /// that satisfies `is_ok(x) = true` as the value of `Some`.
         ///
         /// Returns `None` if no such floating point number exists in both of the above cases.
+        /// This includes the case where the absolute error cannot be determined
+        /// to be less than or equal to `eps`.
         ///
         /// # Arguments
         ///
         /// * `rng` - Domain of function `is_ok`.
         /// * `is_ok` - Monotonic function.
-        /// * `eps` - The allowable margin of error. It must be a positive number.
+        /// * `eps` - The allowable absolute error. It must be a positive number.
         /// * `dec` - Represents that `is_ok` is a monotonically decreasing function if true,
         /// or a monotonically increasing function if false.
         ///
@@ -460,11 +478,13 @@ macro_rules! impl_binary_search_with_float {
             /// that satisfies `is_ok(x) = true` as the value of `Some`.
             ///
             /// Returns `None` if no such floating point number exists in both of the above cases.
+            /// This includes the case where the absolute error cannot be determined
+            /// to be less than or equal to `eps`.
             ///
             /// # Arguments
             ///
             /// * `is_ok` - Monotonic function.
-            /// * `eps` - The allowable margin of error. It must be a positive number.
+            /// * `eps` - The allowable absolute error. It must be a positive number.
             /// * `dec` - Represents that `is_ok` is a monotonically decreasing function if true,
             /// or a monotonically increasing function if false.
             ///
