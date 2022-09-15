@@ -95,7 +95,7 @@ pub fn find_furthest_vertex(tree: &[Vec<usize>], source_vertex: usize) -> (usize
 /// assert_eq!(find_tree_diameter(&tree), ((1, 5), 4));
 /// ```
 pub fn find_tree_diameter(tree: &[Vec<usize>]) -> ((usize, usize), usize) {
-    assert!(tree.len() >= 1, "Must have 1 or move vertices.");
+    assert!(!tree.is_empty(), "Must have 1 or move vertices.");
 
     let mut end1 = find_furthest_vertex(tree, 0).0;
     let (mut end2, dist) = find_furthest_vertex(tree, end1);
