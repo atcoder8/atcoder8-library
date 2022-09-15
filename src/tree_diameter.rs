@@ -4,7 +4,8 @@ use std::{collections::VecDeque, mem};
 
 /// Returns the vertex (or one of them if more than one exists)
 /// with the maximum distance from the `source_vertex` and its distance;
-/// where the distance between two vertices is the number of edges on the path connecting them.
+/// where the distance between two vertices is the number of edges
+/// on the shortest path connecting them.
 ///
 /// # Time complexity
 ///
@@ -60,7 +61,8 @@ pub fn find_furthest_vertex(tree: &[Vec<usize>], source_vertex: usize) -> (usize
 
 /// Returns the pair of vertices (or one of them if more than one exists)
 /// such that the distance is maximal, and the distance between them;
-/// where the distance between two vertices is the number of edges on the path connecting them.
+/// where the distance between two vertices is the number of edges
+/// on the shortest path connecting them.
 ///
 /// If both vertices are returned as `(end1, end2)`, then `end1 <= end2`.
 ///
