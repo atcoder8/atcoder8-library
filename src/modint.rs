@@ -34,65 +34,65 @@ pub fn modinv(a: u32, m: u32) -> u32 {
 
 /// This macro implements rem_euclid_u32 for signed integer types of 32 bits or less.
 macro_rules! impl_rem_euclid_u32_for_small_signed {
-        ($($small_signed_type:tt),*) => {
-            $(
-                impl RemEuclidU32 for $small_signed_type {
-                    fn rem_euclid_u32(self, modulus: u32) -> u32 {
-                        let ret = (self as i32) % (modulus as i32);
-                        if ret >= 0 {
-                            ret as u32
-                        } else {
-                            (ret + modulus as i32) as u32
-                        }
+    ($($small_signed_type:tt),*) => {
+        $(
+            impl RemEuclidU32 for $small_signed_type {
+                fn rem_euclid_u32(self, modulus: u32) -> u32 {
+                    let ret = (self as i32) % (modulus as i32);
+                    if ret >= 0 {
+                        ret as u32
+                    } else {
+                        (ret + modulus as i32) as u32
                     }
                 }
-            )*
-        };
-    }
+            }
+        )*
+    };
+}
 
 /// This macro implements rem_euclid_u32 for 64-bit signed integer types (including isize).
 macro_rules! impl_rem_euclid_u32_for_large_signed {
-        ($($large_signed_type:tt),*) => {
-            $(
-                impl RemEuclidU32 for $large_signed_type {
-                    fn rem_euclid_u32(self, modulus: u32) -> u32 {
-                        let ret = (self as i64) % (modulus as i64);
-                        if ret >= 0 {
-                            ret as u32
-                        } else {
-                            (ret + modulus as i64) as u32
-                        }
+    ($($large_signed_type:tt),*) => {
+        $(
+            impl RemEuclidU32 for $large_signed_type {
+                fn rem_euclid_u32(self, modulus: u32) -> u32 {
+                    let ret = (self as i64) % (modulus as i64);
+                    if ret >= 0 {
+                        ret as u32
+                    } else {
+                        (ret + modulus as i64) as u32
                     }
                 }
-            )*
-        };
-    }
+            }
+        )*
+    };
+}
 
 /// This macro implements rem_euclid_u32 for unsigned integer types greater than 32 bits.
 macro_rules! impl_rem_euclid_u32_for_small_unsigned {
-        ($($small_unsigned_type:tt),*) => {
-            $(
-                impl RemEuclidU32 for $small_unsigned_type {
-                    fn rem_euclid_u32(self, modulus: u32) -> u32 {
-                        self as u32 % modulus
-                    }
+    ($($small_unsigned_type:tt),*) => {
+        $(
+            impl RemEuclidU32 for $small_unsigned_type {
+                fn rem_euclid_u32(self, modulus: u32) -> u32 {
+                    self as u32 % modulus
                 }
-            )*
-        };
-    }
+            }
+        )*
+    };
+}
 
 /// This macro implements rem_euclid_u32 for 64-bit and larger unsigned integer types (including usize).
 macro_rules! impl_rem_euclid_u32_for_large_unsigned {
-        ($($large_unsigned_type:tt),*) => {
-            $(
-                impl RemEuclidU32 for $large_unsigned_type {
-                    fn rem_euclid_u32(self, modulus: u32) -> u32 {
-                        (self % modulus as $large_unsigned_type) as u32
-                    }
+    ($($large_unsigned_type:tt),*) => {
+        $(
+            impl RemEuclidU32 for $large_unsigned_type {
+                fn rem_euclid_u32(self, modulus: u32) -> u32 {
+                    (self % modulus as $large_unsigned_type) as u32
                 }
-            )*
-        };
-    }
+            }
+        )*
+    };
+}
 
 // Implement rem_euclid_u32 for signed integer types of 32 bits or less.
 impl_rem_euclid_u32_for_small_signed!(i8, i16, i32);
@@ -122,11 +122,162 @@ pub trait Pow<T: Copy + ShrAssign> {
     fn pow(self, n: T) -> Self;
 }
 
-/// This macro generates ModInt by specifying the type name and modulus.
+/// Macro to overload binary operation with `$modint_type` for each integer type
+macro_rules! impl_ops {
+    ($modint_type:tt, $($other_type:tt),*) => {
+        $(
+            impl Add<$other_type> for $modint_type {
+                type Output = Self;
+
+                fn add(self, rhs: $other_type) -> Self::Output {
+                    self + Self::new(rhs)
+                }
+            }
+
+            impl Add<$modint_type> for $other_type {
+                type Output = $modint_type;
+
+                fn add(self, rhs: $modint_type) -> Self::Output {
+                    $modint_type::new(self) + rhs
+                }
+            }
+
+            impl Sub<$other_type> for $modint_type {
+                type Output = Self;
+
+                fn sub(self, rhs: $other_type) -> Self::Output {
+                    self - Self::new(rhs)
+                }
+            }
+
+            impl Sub<$modint_type> for $other_type {
+                type Output = $modint_type;
+
+                fn sub(self, rhs: $modint_type) -> Self::Output {
+                    $modint_type::new(self) - rhs
+                }
+            }
+
+            impl Mul<$other_type> for $modint_type {
+                type Output = Self;
+
+                fn mul(self, rhs: $other_type) -> Self::Output {
+                    self * Self::new(rhs)
+                }
+            }
+
+            impl Mul<$modint_type> for $other_type {
+                type Output = $modint_type;
+
+                fn mul(self, rhs: $modint_type) -> Self::Output {
+                    $modint_type::new(self) * rhs
+                }
+            }
+
+            impl Div<$other_type> for $modint_type {
+                type Output = Self;
+
+                fn div(self, rhs: $other_type) -> Self::Output {
+                    self / Self::new(rhs)
+                }
+            }
+
+            impl Div<$modint_type> for $other_type {
+                type Output = $modint_type;
+
+                fn div(self, rhs: $modint_type) -> Self::Output {
+                    $modint_type::new(self) / rhs
+                }
+            }
+
+            impl AddAssign<$other_type> for $modint_type {
+                fn add_assign(&mut self, other: $other_type) {
+                    *self = *self + Self::new(other);
+                }
+            }
+
+            impl SubAssign<$other_type> for $modint_type {
+                fn sub_assign(&mut self, other: $other_type) {
+                    *self = *self - Self::new(other);
+                }
+            }
+
+            impl MulAssign<$other_type> for $modint_type {
+                fn mul_assign(&mut self, other: $other_type) {
+                    *self = *self * Self::new(other);
+                }
+            }
+
+            impl DivAssign<$other_type> for $modint_type {
+                fn div_assign(&mut self, other: $other_type) {
+                    *self = *self / Self::new(other);
+                }
+            }
+        )*
+    };
+}
+
+/// This macro defines powers of Modint for unsigned integer types.
+macro_rules! impl_power_for_unsigned {
+    ($modint_type:tt, $($unsigned_type:tt),*) => {
+        $(
+            impl Pow<$unsigned_type> for $modint_type {
+                fn pow(self, mut n: $unsigned_type) -> Self {
+                    let mut ret = Self::new(1);
+                    let mut mul = self;
+                    while n != 0 {
+                        if n & 1 == 1 {
+                            ret *= mul;
+                        }
+                        mul *= mul;
+                        n >>= 1;
+                    }
+                    ret
+                }
+            }
+        )*
+    };
+}
+
+/// This macro defines powers of Modint for signed integer types of 32 bits or less.
+macro_rules! impl_power_for_small_signed {
+    ($modint_type:tt, $($small_signed_type:tt),*) => {
+        $(
+            impl Pow<$small_signed_type> for $modint_type {
+                fn pow(self, n: $small_signed_type) -> Self {
+                    if n >= 0 {
+                        self.pow(n as u32)
+                    } else {
+                        self.pow(-n as u32).inv()
+                    }
+                }
+            }
+        )*
+    };
+}
+
+/// This macro defines the power of Modint for 64-bit signed integer types (including isize).
+macro_rules! impl_power_for_large_signed {
+    ($modint_type:tt, $($large_signed_type:tt),*) => {
+        $(
+            impl Pow<$large_signed_type> for $modint_type {
+                fn pow(self, n: $large_signed_type) -> Self {
+                    if n >= 0 {
+                        self.pow(n as u64)
+                    } else {
+                        self.pow(-n as u64).inv()
+                    }
+                }
+            }
+        )*
+    };
+}
+
+/// This macro generates Modint by specifying the type name and modulus.
 #[macro_export]
 macro_rules! generate_modint {
     ($modint_type:tt, $modulus:literal) => {
-        #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+        #[derive(Debug, Hash, Clone, Copy, PartialEq, Eq)]
         pub struct $modint_type {
             val: u32,
         }
@@ -243,16 +394,16 @@ macro_rules! generate_modint {
             usize
         );
 
-        // Define powers of ModInt for unsigned integer types.
+        // Define powers of Modint for unsigned integer types.
         impl_power_for_unsigned!($modint_type, u8, u16, u32, u64, u128, usize);
 
-        // Define powers of ModInt for signed integer types of 32 bits or less.
+        // Define powers of Modint for signed integer types of 32 bits or less.
         impl_power_for_small_signed!($modint_type, i8, i16, i32);
 
-        // Define ModInt powers for 64-bit signed integer types (including isize).
+        // Define Modint powers for 64-bit signed integer types (including isize).
         impl_power_for_large_signed!($modint_type, i64, isize);
 
-        // Define the power of ModInt for 128-bit signed integer types.
+        // Define the power of Modint for 128-bit signed integer types.
         impl Pow<i128> for $modint_type {
             fn pow(self, n: i128) -> Self {
                 if n >= 0 {
@@ -265,159 +416,8 @@ macro_rules! generate_modint {
     };
 }
 
-/// This macro defines powers of ModInt for unsigned integer types.
-macro_rules! impl_power_for_unsigned {
-        ($modint_type:tt, $($unsigned_type:tt),*) => {
-            $(
-                impl Pow<$unsigned_type> for $modint_type {
-                    fn pow(self, mut n: $unsigned_type) -> Self {
-                        let mut ret = Self::new(1);
-                        let mut mul = self;
-                        while n != 0 {
-                            if n & 1 == 1 {
-                                ret *= mul;
-                            }
-                            mul *= mul;
-                            n >>= 1;
-                        }
-                        ret
-                    }
-                }
-            )*
-        };
-    }
+// Define Modint with 998244353 as modulus
+generate_modint!(Modint998244353, 998244353);
 
-/// This macro defines powers of ModInt for signed integer types of 32 bits or less.
-macro_rules! impl_power_for_small_signed {
-        ($modint_type:tt, $($small_signed_type:tt),*) => {
-            $(
-                impl Pow<$small_signed_type> for $modint_type {
-                    fn pow(self, n: $small_signed_type) -> Self {
-                        if n >= 0 {
-                            self.pow(n as u32)
-                        } else {
-                            self.pow(-n as u32).inv()
-                        }
-                    }
-                }
-            )*
-        };
-    }
-
-/// This macro defines the power of ModInt for 64-bit signed integer types (including isize).
-macro_rules! impl_power_for_large_signed {
-        ($modint_type:tt, $($large_signed_type:tt),*) => {
-            $(
-                impl Pow<$large_signed_type> for $modint_type {
-                    fn pow(self, n: $large_signed_type) -> Self {
-                        if n >= 0 {
-                            self.pow(n as u64)
-                        } else {
-                            self.pow(-n as u64).inv()
-                        }
-                    }
-                }
-            )*
-        };
-    }
-
-/// Macro to overload binary operation with `$modint_type` for each integer type
-macro_rules! impl_ops {
-        ($modint_type:tt, $($other_type:tt),*) => {
-            $(
-                impl Add<$other_type> for $modint_type {
-                    type Output = Self;
-
-                    fn add(self, rhs: $other_type) -> Self::Output {
-                        self + Self::new(rhs)
-                    }
-                }
-
-                impl Add<$modint_type> for $other_type {
-                    type Output = $modint_type;
-
-                    fn add(self, rhs: $modint_type) -> Self::Output {
-                        $modint_type::new(self) + rhs
-                    }
-                }
-
-                impl Sub<$other_type> for $modint_type {
-                    type Output = Self;
-
-                    fn sub(self, rhs: $other_type) -> Self::Output {
-                        self - Self::new(rhs)
-                    }
-                }
-
-                impl Sub<$modint_type> for $other_type {
-                    type Output = $modint_type;
-
-                    fn sub(self, rhs: $modint_type) -> Self::Output {
-                        $modint_type::new(self) - rhs
-                    }
-                }
-
-                impl Mul<$other_type> for $modint_type {
-                    type Output = Self;
-
-                    fn mul(self, rhs: $other_type) -> Self::Output {
-                        self * Self::new(rhs)
-                    }
-                }
-
-                impl Mul<$modint_type> for $other_type {
-                    type Output = $modint_type;
-
-                    fn mul(self, rhs: $modint_type) -> Self::Output {
-                        $modint_type::new(self) * rhs
-                    }
-                }
-
-                impl Div<$other_type> for $modint_type {
-                    type Output = Self;
-
-                    fn div(self, rhs: $other_type) -> Self::Output {
-                        self / Self::new(rhs)
-                    }
-                }
-
-                impl Div<$modint_type> for $other_type {
-                    type Output = $modint_type;
-
-                    fn div(self, rhs: $modint_type) -> Self::Output {
-                        $modint_type::new(self) / rhs
-                    }
-                }
-
-                impl AddAssign<$other_type> for $modint_type {
-                    fn add_assign(&mut self, other: $other_type) {
-                        *self = *self + Self::new(other);
-                    }
-                }
-
-                impl SubAssign<$other_type> for $modint_type {
-                    fn sub_assign(&mut self, other: $other_type) {
-                        *self = *self - Self::new(other);
-                    }
-                }
-
-                impl MulAssign<$other_type> for $modint_type {
-                    fn mul_assign(&mut self, other: $other_type) {
-                        *self = *self * Self::new(other);
-                    }
-                }
-
-                impl DivAssign<$other_type> for $modint_type {
-                    fn div_assign(&mut self, other: $other_type) {
-                        *self = *self / Self::new(other);
-                    }
-                }
-            )*
-        };
-    }
-
-// Define ModInt with 998244353 as modulus
-generate_modint!(ModInt998244353, 998244353);
-
-// Define ModInt with 1000000007 as modulus
-generate_modint!(ModInt1000000007, 1000000007);
+// Define Modint with 1000000007 as modulus
+generate_modint!(Modint1000000007, 1000000007);
