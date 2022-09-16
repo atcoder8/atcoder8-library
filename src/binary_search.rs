@@ -347,17 +347,13 @@ macro_rules! impl_binary_search_with_float {
             while right - left > eps {
                 let mid = right - (right - left) / 2.0;
 
-                if is_ok(mid) {
-                    if mid >= right {
-                        return None;
-                    }
+                if mid <= left || right <= mid {
+                    return None;
+                }
 
+                if is_ok(mid) {
                     right = mid;
                 } else {
-                    if mid <= left {
-                        return None;
-                    }
-
                     left = mid;
                 }
             }
@@ -400,17 +396,13 @@ macro_rules! impl_binary_search_with_float {
             while (right - left) > eps {
                 let mid = right - (right - left) / 2.0;
 
-                if is_ok(mid) {
-                    if mid <= left {
-                        return None;
-                    }
+                if mid <= left || right <= mid {
+                    return None;
+                }
 
+                if is_ok(mid) {
                     left = mid;
                 } else {
-                    if mid >= right {
-                        return None;
-                    }
-
                     right = mid;
                 }
             }
