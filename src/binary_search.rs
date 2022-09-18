@@ -6,18 +6,17 @@ use std::ops::{
 
 macro_rules! impl_binary_search_with_integer {
     ($int_type: ident, $fn_name_for_inc: ident, $fn_name_for_dec: ident, $fn_name: ident, $trait_name: ident) => {
-        fn $fn_name_for_inc<R, F>(rng: R, is_ok: F) -> Option<$int_type>
+        fn $fn_name_for_inc<R, F>(rng: R, mut is_ok: F) -> Option<$int_type>
         where
             R: RangeBounds<$int_type>,
-            F: Fn($int_type) -> bool,
+            F: FnMut($int_type) -> bool,
         {
             let mut left = match rng.start_bound() {
                 std::ops::Bound::Included(&start) => start,
                 std::ops::Bound::Excluded(&start) => {
-                    assert!(
-                        start == std::$int_type::MAX,
-                        "The interval represented by `rng` is empty."
-                    );
+                    if start == std::$int_type::MAX {
+                        return None;
+                    }
 
                     start + 1
                 }
@@ -40,13 +39,15 @@ macro_rules! impl_binary_search_with_integer {
                 std::ops::Bound::Unbounded => std::$int_type::MAX,
             };
 
-            assert!(left < right, "The interval represented by `rng` is empty.");
+            if left >= right {
+                return None;
+            }
 
             if is_ok(left) {
                 return Some(left);
             }
 
-            if !is_ok(right - 1) {
+            if left + 1 == right || !is_ok(right - 1) {
                 return None;
             }
 
@@ -63,18 +64,17 @@ macro_rules! impl_binary_search_with_integer {
             Some(right)
         }
 
-        fn $fn_name_for_dec<R, F>(rng: R, is_ok: F) -> Option<$int_type>
+        fn $fn_name_for_dec<R, F>(rng: R, mut is_ok: F) -> Option<$int_type>
         where
             R: RangeBounds<$int_type>,
-            F: Fn($int_type) -> bool,
+            F: FnMut($int_type) -> bool,
         {
             let mut left = match rng.start_bound() {
                 std::ops::Bound::Included(&start) => start,
                 std::ops::Bound::Excluded(&start) => {
-                    assert!(
-                        start == std::$int_type::MAX,
-                        "The interval represented by `rng` is empty."
-                    );
+                    if start == std::$int_type::MAX {
+                        return None;
+                    }
 
                     start + 1
                 }
@@ -97,13 +97,15 @@ macro_rules! impl_binary_search_with_integer {
                 std::ops::Bound::Unbounded => std::$int_type::MAX,
             };
 
-            assert!(left < right, "The interval represented by `rng` is empty.");
+            if left >= right {
+                return None;
+            }
 
             if is_ok(right - 1) {
                 return Some(right - 1);
             }
 
-            if !is_ok(left) {
+            if left + 1 == right || !is_ok(left) {
                 return None;
             }
 
@@ -152,7 +154,7 @@ macro_rules! impl_binary_search_with_integer {
         pub fn $fn_name<R, F>(rng: R, is_ok: F, dec: bool) -> Option<$int_type>
         where
             R: RangeBounds<$int_type>,
-            F: Fn($int_type) -> bool,
+            F: FnMut($int_type) -> bool,
         {
             if dec {
                 $fn_name_for_dec(rng, is_ok)
@@ -194,7 +196,7 @@ macro_rules! impl_binary_search_with_integer {
             /// ```
             fn binary_search<F>(self, is_ok: F, dec: bool) -> Option<$int_type>
             where
-                F: Fn($int_type) -> bool,
+                F: FnMut($int_type) -> bool,
             {
                 $fn_name(self, is_ok, dec)
             }
@@ -312,10 +314,14 @@ impl_binary_search_with_integer!(
 
 macro_rules! impl_binary_search_with_float {
     ($float_type: ident, $fn_name_for_inc: ident, $fn_name_for_dec: ident, $fn_name: ident, $trait_name: ident) => {
-        fn $fn_name_for_inc<R, F>(rng: R, is_ok: F, eps: $float_type) -> Option<$float_type>
+        fn $fn_name_for_inc<R, F>(
+            rng: R,
+            mut is_ok: F,
+            eps: $float_type,
+        ) -> Option<$float_type>
         where
             R: RangeBounds<$float_type>,
-            F: Fn($float_type) -> bool,
+            F: FnMut($float_type) -> bool,
         {
             let mut left = match rng.start_bound() {
                 std::ops::Bound::Included(&start) => start,
@@ -329,12 +335,14 @@ macro_rules! impl_binary_search_with_float {
                 std::ops::Bound::Unbounded => std::$float_type::MAX,
             };
 
-            assert!(left < right, "The interval represented by `rng` is empty.");
-
             assert!(
                 eps > 0.0,
                 "Allowable margin of error must be a positive number."
             );
+
+            if left >= right {
+                return None;
+            }
 
             if is_ok(left) {
                 return Some(left);
@@ -361,10 +369,14 @@ macro_rules! impl_binary_search_with_float {
             Some(right)
         }
 
-        fn $fn_name_for_dec<R, F>(rng: R, is_ok: F, eps: $float_type) -> Option<$float_type>
+        fn $fn_name_for_dec<R, F>(
+            rng: R,
+            mut is_ok: F,
+            eps: $float_type,
+        ) -> Option<$float_type>
         where
             R: RangeBounds<$float_type>,
-            F: Fn($float_type) -> bool,
+            F: FnMut($float_type) -> bool,
         {
             let mut left = match rng.start_bound() {
                 std::ops::Bound::Included(&start) => start,
@@ -378,12 +390,14 @@ macro_rules! impl_binary_search_with_float {
                 std::ops::Bound::Unbounded => std::$float_type::MAX,
             };
 
-            assert!(left < right, "The interval represented by `rng` is empty.");
-
             assert!(
                 eps > 0.0,
                 "Allowable margin of error must be a positive number."
             );
+
+            if left >= right {
+                return None;
+            }
 
             if is_ok(right) {
                 return Some(right);
@@ -446,10 +460,15 @@ macro_rules! impl_binary_search_with_float {
         /// let ans = binary_search_with_f64(-100.0..0.0, is_ok, 1e-6, true).unwrap();
         /// assert!((ans - (-20.0)).abs() <= 1e-6);
         /// ```
-        pub fn $fn_name<R, F>(rng: R, is_ok: F, eps: $float_type, dec: bool) -> Option<$float_type>
+        pub fn $fn_name<R, F>(
+            rng: R,
+            is_ok: F,
+            eps: $float_type,
+            dec: bool,
+        ) -> Option<$float_type>
         where
             R: RangeBounds<$float_type>,
-            F: Fn($float_type) -> bool,
+            F: FnMut($float_type) -> bool,
         {
             if dec {
                 $fn_name_for_dec(rng, is_ok, eps)
@@ -496,9 +515,14 @@ macro_rules! impl_binary_search_with_float {
             /// let ans = (-100.0..0.0).binary_search(is_ok, 1e-6, true).unwrap();
             /// assert!((ans - (-20.0)).abs() <= 1e-6);
             /// ```
-            fn binary_search<F>(self, is_ok: F, eps: $float_type, dec: bool) -> Option<$float_type>
+            fn binary_search<F>(
+                self,
+                is_ok: F,
+                eps: $float_type,
+                dec: bool,
+            ) -> Option<$float_type>
             where
-                F: Fn($float_type) -> bool,
+                F: FnMut($float_type) -> bool,
             {
                 $fn_name(self, is_ok, eps, dec)
             }
