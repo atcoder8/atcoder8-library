@@ -277,7 +277,7 @@ macro_rules! impl_power_for_large_signed {
 #[macro_export]
 macro_rules! generate_modint {
     ($modint_type:tt, $modulus:literal) => {
-        #[derive(Debug, Hash, Clone, Copy, PartialEq, Eq)]
+        #[derive(Debug, Default, Hash, Clone, Copy, PartialEq, Eq)]
         pub struct $modint_type {
             val: u32,
         }
