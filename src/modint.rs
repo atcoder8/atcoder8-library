@@ -293,6 +293,10 @@ macro_rules! generate_modint {
                 }
             }
 
+            pub fn frac<T: RemEuclidU32>(numer: T, denom: T) -> Self {
+                Self::new(numer) / Self::new(denom)
+            }
+
             pub fn raw(val: u32) -> Self {
                 Self { val }
             }
