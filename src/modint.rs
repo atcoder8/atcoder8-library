@@ -1,5 +1,7 @@
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, ShrAssign, Sub, SubAssign};
 
+use num::{One, Zero};
+
 pub trait RemEuclidU32 {
     fn rem_euclid_u32(self, modulus: u32) -> u32;
 }
@@ -378,6 +380,22 @@ macro_rules! generate_modint {
 
             fn neg(self) -> Self::Output {
                 Self::new(Self::MOD - self.val)
+            }
+        }
+
+        impl Zero for $modint_type {
+            fn zero() -> Self {
+                Self::new(0)
+            }
+
+            fn is_zero(&self) -> bool {
+                self.val == 0
+            }
+        }
+
+        impl One for $modint_type {
+            fn one() -> Self {
+                Self::new(1)
             }
         }
 
