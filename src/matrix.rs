@@ -395,6 +395,30 @@ where
     elements: Vec<T>,
 }
 
+pub trait InnerProduct<T>
+where
+    T: Clone + Add<T, Output = T> + Mul<T, Output = T>,
+{
+    fn inner_product(&self, rhs: &Vector<T>) -> T;
+}
+
+impl<T> InnerProduct<T> for Vector<T>
+where
+    T: Clone + Add<T, Output = T> + Mul<T, Output = T>,
+{
+    fn inner_product(&self, rhs: &Vector<T>) -> T {
+        assert_eq!(self.len(), rhs.len());
+
+        let mut ret = self.get(0).clone() * rhs.get(0).clone();
+
+        for i in 1..self.len() {
+            ret = ret + self.get(i).clone() * rhs.get(i).clone();
+        }
+
+        ret
+    }
+}
+
 impl<T> Vector<T>
 where
     T: Clone,
@@ -704,6 +728,14 @@ mod test {
 
     mod test_for_vector {
         use super::super::*;
+
+        #[test]
+        fn test_inner_product() {
+            let vec1: Vector<i32> = vec![3, -1, 4, -1].into();
+            let vec2: Vector<i32> = vec![-1, 5, 9, -5].into();
+
+            assert_eq!(vec1.inner_product(&vec2), 33);
+        }
 
         #[test]
         fn test_add() {
