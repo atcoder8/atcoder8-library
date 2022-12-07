@@ -12,3 +12,4 @@ pub mod binary_search;
 pub mod functions;
 pub mod tree_diameter;
 pub mod dijkstra;
+pub mod matrix;
