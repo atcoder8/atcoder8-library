@@ -1,10 +1,10 @@
 /// Module for testing
 #[cfg(test)]
 mod random_test {
-    /// Input data type
+    /// Input data type.
     type Input = ();
 
-    /// Output data type
+    /// Output data type.
     type Output = ();
 
     /// Perform the specified number of tests.
@@ -43,7 +43,7 @@ Wrong Answer on Test #{}
         ()
     }
 
-    /// Returns expected answer.
+    /// Return the expected answer.
     pub fn expected(input: Input) -> Output {
         let () = input;
 
