@@ -14,3 +14,4 @@ pub mod tree_diameter;
 pub mod dijkstra;
 pub mod matrix;
 pub mod number_theory;
+pub mod grid_board;
