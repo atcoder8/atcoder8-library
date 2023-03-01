@@ -40,20 +40,20 @@ Wrong Answer on Test #{}
     pub fn generator() -> Input {
         // let mut rng = rand::thread_rng();
 
-        ()
+        todo!()
     }
 
     /// Return the expected answer.
     pub fn expected(input: Input) -> Output {
         let () = input;
 
-        ()
+        todo!()
     }
 
     /// Test this program.
     pub fn solve(input: Input) -> Output {
         let () = input;
 
-        ()
+        todo!()
     }
 }
