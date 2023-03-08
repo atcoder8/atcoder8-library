@@ -42,6 +42,14 @@ impl Doubling {
     ///
     /// * start - Initial index.
     /// * trans_num - Number of transitions.
+    /// 
+    /// # Examples
+    ///
+    /// ```
+    /// use atcoder8_library::doubling::Doubling;
+    ///
+    /// let mut doubling = Doubling::new(&vec![1, 2, 3, 4, 5, 6, 7, 8, 9, 0]);
+    /// assert_eq!(doubling.get_destination(5, 1000000007), 2);
     pub fn get_destination(&mut self, start: usize, trans_num: usize) -> usize {
         let n = self.transitions[0].len();
 
