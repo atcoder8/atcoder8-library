@@ -15,3 +15,4 @@ pub mod dijkstra;
 pub mod matrix;
 pub mod number_theory;
 pub mod grid_board;
+pub mod doubling;
