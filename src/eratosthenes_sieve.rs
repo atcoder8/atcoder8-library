@@ -41,7 +41,7 @@ impl EratosthenesSieve {
         Self { sieve }
     }
 
-    /// Returns the smallest prime number that divides `n`.
+    /// Returns the least prime factor of `n`.
     ///
     /// However, if `n` is `1`, then `1` is returned.
     ///
@@ -51,13 +51,13 @@ impl EratosthenesSieve {
     /// use atcoder8_library::eratosthenes_sieve::EratosthenesSieve;
     ///
     /// let sieve = EratosthenesSieve::new(27);
-    /// assert_eq!(sieve.min_divisor(1), 1);
-    /// assert_eq!(sieve.min_divisor(2), 2);
-    /// assert_eq!(sieve.min_divisor(6), 2);
-    /// assert_eq!(sieve.min_divisor(11), 11);
-    /// assert_eq!(sieve.min_divisor(27), 3);
+    /// assert_eq!(sieve.get_least_prime_factor(1), 1);
+    /// assert_eq!(sieve.get_least_prime_factor(2), 2);
+    /// assert_eq!(sieve.get_least_prime_factor(6), 2);
+    /// assert_eq!(sieve.get_least_prime_factor(11), 11);
+    /// assert_eq!(sieve.get_least_prime_factor(27), 3);
     /// ```
-    pub fn min_divisor(&self, n: usize) -> usize {
+    pub fn get_least_prime_factor(&self, n: usize) -> usize {
         assert_ne!(n, 0, "`n` must be at least 1.");
 
         self.sieve[n]
