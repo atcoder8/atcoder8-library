@@ -119,9 +119,9 @@ impl EratosthenesSieve {
         factors
     }
 
-    /// Creates a list of divisors of `n`.
+    /// Creates a list of positive divisors of `n`.
     ///
-    /// The divisors are listed in ascending order.
+    /// The positive divisors are listed in ascending order.
     ///
     /// # Examples
     ///
@@ -164,7 +164,7 @@ impl EratosthenesSieve {
         divisors
     }
 
-    /// Calculates the number of divisors of `n`.
+    /// Calculates the number of positive divisors of `n`.
     ///
     /// # Examples
     ///
