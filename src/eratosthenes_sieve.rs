@@ -135,10 +135,10 @@ impl EratosthenesSieve {
         assert_ne!(n, 0, "`n` must be at least 1.");
 
         let prime_factors = self.prime_factorization(n);
+        let divisor_num: usize = prime_factors.iter().map(|&(_, exp)| exp + 1).product();
 
         let mut divisors = vec![1];
-        let divisors_num: usize = prime_factors.iter().map(|&(_, e)| e + 1).product();
-        divisors.reserve(divisors_num - 1);
+        divisors.reserve(divisor_num - 1);
 
         for (p, e) in prime_factors {
             let mut add_divisors = vec![];
@@ -159,5 +159,47 @@ impl EratosthenesSieve {
         divisors.sort_unstable();
 
         divisors
+    }
+
+    /// Calculates the number of divisors of `n`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use atcoder8_library::eratosthenes_sieve::EratosthenesSieve;
+    ///
+    /// let sieve = EratosthenesSieve::new(27);
+    /// assert_eq!(sieve.calc_divisor_num(1), 1);
+    /// assert_eq!(sieve.calc_divisor_num(12), 6);
+    /// assert_eq!(sieve.calc_divisor_num(19), 2);
+    /// assert_eq!(sieve.calc_divisor_num(27), 4);
+    /// ```
+    pub fn calc_divisor_num(&self, n: usize) -> usize {
+        assert_ne!(n, 0, "`n` must be at least 1.");
+
+        let mut n = n;
+
+        let mut divisor_num = 1;
+        let mut cur_p = None;
+        let mut cur_exp = 0;
+
+        while n != 1 {
+            let p = self.sieve[n];
+
+            if Some(p) == cur_p {
+                cur_exp += 1;
+            } else {
+                divisor_num *= cur_exp + 1;
+
+                cur_p = Some(p);
+                cur_exp = 1;
+            }
+
+            n /= p;
+        }
+
+        divisor_num *= cur_exp + 1;
+
+        divisor_num
     }
 }
