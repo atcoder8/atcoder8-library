@@ -41,7 +41,9 @@ impl EratosthenesSieve {
         Self { sieve }
     }
 
-    /// Returns the least divisor of `n`.
+    /// Returns the smallest prime number that divides `n`.
+    ///
+    /// However, if `n` is `1`, then `1` is returned.
     ///
     /// # Examples
     ///
