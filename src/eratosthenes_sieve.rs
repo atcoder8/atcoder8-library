@@ -98,11 +98,12 @@ impl EratosthenesSieve {
     pub fn prime_factorization(&self, n: usize) -> Vec<(usize, usize)> {
         assert_ne!(n, 0, "`n` must be at least 1.");
 
-        let mut factors: Vec<(usize, usize)> = vec![];
-        let mut t = n;
+        let mut n = n;
 
-        while t != 1 {
-            let p = self.sieve[t];
+        let mut factors: Vec<(usize, usize)> = vec![];
+
+        while n != 1 {
+            let p = self.sieve[n];
 
             if factors.is_empty() || factors.last().unwrap().0 != p {
                 factors.push((p, 1));
@@ -110,7 +111,7 @@ impl EratosthenesSieve {
                 factors.last_mut().unwrap().1 += 1;
             }
 
-            t /= p;
+            n /= p;
         }
 
         factors
