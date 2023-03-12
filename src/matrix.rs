@@ -217,7 +217,7 @@ where
     fn mat_pow_mod(&self, exp: usize, modulus: T) -> Self {
         assert!(self.is_square());
 
-        let mut ret = Self::identity(self.shape.0);
+        let mut ret = Self::identity(self.shape.0) % modulus.clone();
         let mut mul = self.clone();
         let mut exp = exp;
 
@@ -226,7 +226,7 @@ where
                 ret.mat_mul_assign_mod(&mul, modulus.clone());
             }
 
-            mul = mul.mat_mul(&mul);
+            mul = mul.mat_mul_mod(&mul, modulus.clone());
             exp /= 2;
         }
 
