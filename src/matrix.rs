@@ -116,10 +116,11 @@ where
         let calc_elem = |coord: (usize, usize)| {
             let (i, j) = coord;
 
-            (0..w1)
+            let init = self.get((i, 0)).clone() * rhs.get((0, j)).clone();
+
+            (1..w1)
                 .map(|k| self.get((i, k)).clone() * rhs.get((k, j)).clone())
-                .reduce(|acc, x| acc + x)
-                .unwrap()
+                .fold(init, |acc, x| acc + x)
         };
 
         let flattened: Vec<T> = (0..(h1 * w2))
@@ -182,10 +183,11 @@ where
         let calc_elem = |coord: (usize, usize)| {
             let (i, j) = coord;
 
-            let elem = (0..w1)
+            let init = self.get((i, 0)).clone() * rhs.get((0, j)).clone() % modulus.clone();
+
+            let elem = (1..w1)
                 .map(|k| lhs.get((i, k)).clone() * rhs.get((k, j)).clone() % modulus.clone())
-                .reduce(|acc, x| (acc + x) % modulus.clone())
-                .unwrap();
+                .fold(init, |acc, x| (acc + x) % modulus.clone());
 
             (elem + modulus.clone()) % modulus.clone()
         };
@@ -861,6 +863,8 @@ mod test {
         #[test]
         fn test_mat_pow_mod() {
             let mat: Matrix<i32> = vec![vec![3, -1, 4], vec![-1, 5, 9], vec![2, 6, -5]].into();
+
+            assert_eq!(mat.mat_pow_mod(0, 1), Matrix::zero((3, 3)));
 
             assert_eq!(mat.mat_pow_mod(0, 10), Matrix::identity(3));
 
