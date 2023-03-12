@@ -11,13 +11,32 @@ where
     flattened: Vec<T>,
 }
 
+pub trait Identity<T>
+where
+    T: Clone + One + Zero,
+{
+    fn identity(n: usize) -> Self;
+}
+
 pub trait MatMul<T>
 where
     T: Clone + Add<T, Output = T> + Mul<T, Output = T>,
 {
     fn mat_mul(&self, rhs: &Self) -> Self;
+}
 
+pub trait MatMulAssign<T>
+where
+    T: Clone + Add<T, Output = T> + Mul<T, Output = T>,
+{
     fn mat_mul_assign(&mut self, rhs: &Self);
+}
+
+pub trait MatPow<T>
+where
+    T: Clone + Zero + One + Add<T, Output = T> + Mul<T, Output = T>,
+{
+    fn mat_pow(&self, exp: usize) -> Self;
 }
 
 pub trait Transpose<T>
@@ -27,11 +46,21 @@ where
     fn transposed(&self) -> Self;
 }
 
-pub trait MatPow<T>
+impl<T> Identity<T> for Matrix<T>
 where
-    T: Clone + Zero + One + MulAssign<T>,
+    T: Clone + Zero + One,
 {
-    fn mat_pow(&self, exp: usize) -> Self;
+    fn identity(n: usize) -> Self {
+        let mut flattened = vec![T::zero(); n * n];
+        for i in 0..n {
+            flattened[n * i + i] = T::one();
+        }
+
+        Self {
+            shape: (n, n),
+            flattened,
+        }
+    }
 }
 
 impl<T> MatMul<T> for Matrix<T>
@@ -67,9 +96,38 @@ where
             flattened,
         }
     }
+}
 
+impl<T> MatMulAssign<T> for Matrix<T>
+where
+    T: Clone + Add<T, Output = T> + Mul<T, Output = T>,
+{
     fn mat_mul_assign(&mut self, rhs: &Self) {
         *self = self.mat_mul(rhs);
+    }
+}
+
+impl<T> MatPow<T> for Matrix<T>
+where
+    T: Clone + Zero + One + Add<T, Output = T> + Mul<T, Output = T>,
+{
+    fn mat_pow(&self, exp: usize) -> Self {
+        assert!(self.is_square());
+
+        let mut ret = Self::identity(self.shape.0);
+        let mut mul = self.clone();
+        let mut exp = exp;
+
+        while exp != 0 {
+            if exp % 2 == 1 {
+                ret.mat_mul_assign(&mul);
+            }
+
+            mul = mul.mat_mul(&mul);
+            exp /= 2;
+        }
+
+        ret
     }
 }
 
@@ -89,30 +147,6 @@ where
             shape: (self.shape.1, self.shape.0),
             flattened,
         }
-    }
-}
-
-impl<T> MatPow<T> for Matrix<T>
-where
-    T: Clone + Zero + One + MulAssign<T>,
-{
-    fn mat_pow(&self, exp: usize) -> Self {
-        assert!(self.is_square());
-
-        let mut ret = Self::identity(self.shape.0);
-        let mut mul = self.clone();
-        let mut exp = exp;
-
-        while exp != 0 {
-            if exp % 2 == 1 {
-                ret.mat_mul_assign(&mul);
-            }
-
-            mul = mul.mat_mul(&mul);
-            exp /= 2;
-        }
-
-        ret
     }
 }
 
@@ -155,25 +189,6 @@ where
         T: One,
     {
         Self::from_flattened(shape, vec![T::one(); shape.0 * shape.1])
-    }
-
-    pub fn identity(n: usize) -> Self
-    where
-        T: Zero + One,
-    {
-        let flattened = (0..n.pow(2))
-            .map(|elem_idx| {
-                let (i, j) = (elem_idx / n, elem_idx % n);
-
-                if i == j {
-                    T::one()
-                } else {
-                    T::zero()
-                }
-            })
-            .collect();
-
-        Self::from_flattened((n, n), flattened)
     }
 
     pub fn from_vector(vec: Vec<T>) -> Self {
