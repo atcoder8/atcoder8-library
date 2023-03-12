@@ -276,7 +276,6 @@ macro_rules! impl_power_for_large_signed {
 }
 
 /// This macro generates Modint by specifying the type name and modulus.
-#[macro_export]
 macro_rules! generate_modint {
     ($modint_type:tt, $modulus:literal) => {
         #[derive(Debug, Default, Hash, Clone, Copy, PartialEq, Eq)]
