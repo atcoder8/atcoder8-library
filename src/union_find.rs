@@ -2,29 +2,34 @@
 //! * Merge two connected components.
 //! * Determine whether two given nodes are in the same connected component.
 //!
-//! To seed up processing, merge optimization using the number of elements
+//! To seed up processing, merge optimization using the number of nodes
 //! of the connected components and path compression are performed.
 //!
 //! The time complexity of each query is `O(A(n))`.
 //! where `n` is the number of nodes in the graph and
 //! `A(n)` is the inverse of the Ackermann function.
 
-/// This is the value that will be associated with each element of the graph.
+/// This is the value that will be associated with each nodes of the graph.
 #[derive(Debug, Clone, Copy)]
 enum ParentOrSize {
     /// It is used for non-representative nodes and stores the parent node.
     Parent(usize),
 
     /// It is used for the representative node and
-    /// stores the number of elements of the connected component.
+    /// stores the number of nodes of the connected component.
     Size(usize),
 }
 
-/// Union-Find processes the following queries on an undirected graph in `O(α(n))` amortized time.
+/// Union-Find processes the following queries on undirected graphs.
 /// * Merge two connected components.
 /// * Determine whether two given nodes are in the same connected component.
 ///
-/// When a method is called, path compression is performed as appropriate.
+/// To seed up processing, merge optimization using the number of nodes
+/// of the connected components and path compression are performed.
+///
+/// The time complexity of each query is `O(A(n))`.
+/// where `n` is the number of nodes in the graph and
+/// `A(n)` is the inverse of the Ackermann function.
 ///
 /// # Examples
 ///
@@ -40,9 +45,10 @@ enum ParentOrSize {
 /// ```
 #[derive(Debug, Default, Clone)]
 pub struct UnionFind {
-    /// For each element, one of the following is stored.
-    /// * Size of the connected component to which it belongs. (if it is representative of the connected component)
-    /// * Index of the element that is its own parent. (otherwise)
+    /// For each node, one of the following is stored.
+    /// * The number of nodes of the connected component to which it belongs.
+    /// (If it is a representative node of the connected component.)
+    /// * Index of the parent node. (Otherwise.)
     parent_or_size: Vec<ParentOrSize>,
 
     /// Number of connected components.
@@ -86,7 +92,7 @@ impl UnionFind {
     /// assert_eq!(uf.leader(1), uf.leader(2));
     /// ```
     pub fn leader(&mut self, a: usize) -> usize {
-        // If node `a` is a representative node of a connected component, return `a`.
+        // If node `a` is a representative node of the connected component, return `a`.
         if let ParentOrSize::Size(_) = self.parent_or_size[a] {
             return a;
         }
@@ -163,13 +169,13 @@ impl UnionFind {
             return false;
         }
 
-        // Number of elements of the component containing node `a`.
+        // Number of nodes of the component containing node `a`.
         let component_size_a = self.size(leader_a);
 
-        // Number of elements of the component containing node `b`.
+        // Number of nodes of the component containing node `b`.
         let component_size_b = self.size(leader_b);
 
-        // Number of elements of the merged component.
+        // Number of nodes of the merged component.
         let merged_component_size = component_size_a + component_size_b;
 
         // Set the parent of the representative node of the smaller sized connected component
