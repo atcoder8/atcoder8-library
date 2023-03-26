@@ -1,16 +1,30 @@
-//! Union-Find processes the following queries for an edgeless graph in `O(α(n))` amortized time.
-//! * Add an undirected edge.
-//! * Deciding whether given two vertices are in the same connected component
+//! Union-Find processes the following queries on undirected graphs.
+//! * Merge two connected components.
+//! * Determine whether two given nodes are in the same connected component.
 //!
-//! When a method is called, route compression is performed as appropriate.
+//! To seed up processing, merge optimization using the number of elements
+//! of the connected components and path compression are performed.
+//!
+//! The time complexity of each query is `O(A(n))`.
+//! where `n` is the number of nodes in the graph and
+//! `A(n)` is the inverse of the Ackermann function.
 
-use std::collections::HashMap;
+/// This is the value that will be associated with each element of the graph.
+#[derive(Debug, Clone, Copy)]
+enum ParentOrSize {
+    /// It is used for non-representative nodes and stores the parent node.
+    Parent(usize),
 
-/// Union-Find processes the following queries for an edgeless graph in `O(α(n))` amortized time.
-/// * Add an undirected edge.
-/// * Deciding whether given two vertices are in the same connected component
+    /// It is used for the representative node and
+    /// stores the number of elements of the connected component.
+    Size(usize),
+}
+
+/// Union-Find processes the following queries on an undirected graph in `O(α(n))` amortized time.
+/// * Merge two connected components.
+/// * Determine whether two given nodes are in the same connected component.
 ///
-/// When a method is called, route compression is performed as appropriate.
+/// When a method is called, path compression is performed as appropriate.
 ///
 /// # Examples
 ///
@@ -24,19 +38,19 @@ use std::collections::HashMap;
 /// uf.merge(1, 2);
 /// assert_eq!(uf.same(0, 2), true);
 /// ```
+#[derive(Debug, Default, Clone)]
 pub struct UnionFind {
     /// For each element, one of the following is stored.
-    /// * Size of the connected component to which it belongs; It is expressed by a negative number
-    /// (if it is representative of a connected component)
-    /// * Index of the element that is its own parent (otherwise)
-    parent_or_size: Vec<i32>,
+    /// * Size of the connected component to which it belongs. (if it is representative of the connected component)
+    /// * Index of the element that is its own parent. (otherwise)
+    parent_or_size: Vec<ParentOrSize>,
 
     /// Number of connected components.
     group_num: usize,
 }
 
 impl UnionFind {
-    /// Creates an undirected graph with `n` vertices and 0 edges.
+    /// Create an undirected graph with `n` nodes and `0` edges.
     ///
     /// # Examples
     ///
@@ -52,12 +66,14 @@ impl UnionFind {
     /// ```
     pub fn new(n: usize) -> Self {
         UnionFind {
-            parent_or_size: vec![-1; n],
+            parent_or_size: vec![ParentOrSize::Size(1); n],
             group_num: n,
         }
     }
 
-    /// Returns the representative of the connected component that contains the vertex `a`.
+    /// Return the representative node of the connected component containing node `a`.
+    ///
+    /// At that time, perform path compression on the nodes on the path from node `a` to the representative node.
     ///
     /// # Examples
     ///
@@ -70,31 +86,39 @@ impl UnionFind {
     /// assert_eq!(uf.leader(1), uf.leader(2));
     /// ```
     pub fn leader(&mut self, a: usize) -> usize {
-        // Path from A to just before the representative
-        // of the connected component to which A belongs
-        // (If the representative is A, then it is empty)
-        let mut path = vec![];
-
-        // Variable representing the current vertex (initialized with a)
-        let mut curr = a;
-
-        // Loop until the vertex indicated by curr becomes the parent.
-        while self.parent_or_size[curr] >= 0 {
-            // Add curr to the path.
-            path.push(curr);
-            // Move to parent vertex.
-            curr = self.parent_or_size[curr] as usize;
+        // If node `a` is a representative node of a connected component, return `a`.
+        if let ParentOrSize::Size(_) = self.parent_or_size[a] {
+            return a;
         }
 
-        // Set the parent of every vertex in the path to representative of the connected component.
-        path.iter()
-            .for_each(|&x| self.parent_or_size[x] = curr as i32);
+        // Path from node `a` to the representative node.
+        let mut path = vec![];
 
-        // Return a representative of the connected component.
-        curr
+        // Current node.
+        let mut current = a;
+
+        // Record the path to the representative node.
+        while let ParentOrSize::Parent(parent) = self.parent_or_size[current] {
+            // Add current node to the path.
+            path.push(current);
+
+            // Move to the parent node.
+            current = parent;
+        }
+
+        // The representative node of the connected component.
+        let leader = current;
+
+        // Set nodes on the path as direct children of the representative node.
+        path.iter().for_each(|&node| {
+            self.parent_or_size[node] = ParentOrSize::Parent(leader);
+        });
+
+        // Return the representative node of the connected component.
+        leader
     }
 
-    /// Returns whether the vertices `a` and `b` are in the same connected component.
+    /// Return whether two nodes `a` and `b` are in the same connected component.
     ///
     /// # Examples
     ///
@@ -112,8 +136,9 @@ impl UnionFind {
         self.leader(a) == self.leader(b)
     }
 
-    /// Adds an edge between vertex `a` and vertex `b`.
-    /// Returns true if the connected component to which a belongs and that of b are newly combined.
+    /// Merge each connected component containing nodes `a` and `b`.
+    ///
+    /// Return `true` if different connected components are newly merged.
     ///
     /// # Examples
     ///
@@ -128,43 +153,48 @@ impl UnionFind {
     /// assert_eq!(uf.same(0, 2), true);
     /// ```
     pub fn merge(&mut self, a: usize, b: usize) -> bool {
-        // Representative of the connected component that contains the vertex a
-        let mut leader_a = self.leader(a);
-        // Representative of the connected component that contains the vertex b
-        let mut leader_b = self.leader(b);
+        // Representative node of the connected component that contains the node `a`.
+        let leader_a = self.leader(a);
+        // Representative node of the connected component that contains the node `b`.
+        let leader_b = self.leader(b);
 
-        // If a and b belong to the same connected component, return false without processing.
+        // If nodes `a` and `b` are in the same connected component, return `false` without processing.
         if leader_a == leader_b {
             return false;
         }
 
-        // If the size of the connected component to which a belongs is
-        // smaller than that of b, swap a and b.
-        if -self.parent_or_size[leader_a] < -self.parent_or_size[leader_b] {
-            std::mem::swap(&mut leader_a, &mut leader_b);
+        // Number of elements of the component containing node `a`.
+        let component_size_a = self.size(leader_a);
+
+        // Number of elements of the component containing node `b`.
+        let component_size_b = self.size(leader_b);
+
+        // Number of elements of the merged component.
+        let merged_component_size = component_size_a + component_size_b;
+
+        // Set the parent of the representative node of the smaller sized connected component
+        // to be the parent of the other connected component.
+        if component_size_a <= component_size_b {
+            self.parent_or_size[leader_a] = ParentOrSize::Parent(leader_b);
+            self.parent_or_size[leader_b] = ParentOrSize::Size(merged_component_size);
+        } else {
+            self.parent_or_size[leader_b] = ParentOrSize::Parent(leader_a);
+            self.parent_or_size[leader_a] = ParentOrSize::Size(merged_component_size);
         }
-
-        // Add that of b to the number of elements of the connected component to which a belongs.
-        self.parent_or_size[leader_a] += self.parent_or_size[leader_b];
-
-        // Set the parent of the representative of the connected component to which b belongs
-        // to the representative of the connected component to which a belongs.
-        self.parent_or_size[leader_b] = leader_a as i32;
 
         // Decrease the number of connected components by one.
         self.group_num -= 1;
 
-        // Return true because the connected component is newly combined.
+        // Return `true` because different connected components are newly combined.
         true
     }
 
-    /// Returns a list of connected components.
+    /// Return a list of connected components.
     ///
-    /// Each list consists of the indexes of the vertices
-    /// of the corresponding connected component.
-    /// The lists are arranged in ascending order with respect to
-    /// the smallest index contained in the list.
-    /// The indexes contained in each list are arranged in ascending order.
+    /// Each connected component consists of indexes of nodes.
+    /// The indexes of the nodes in each connected component are arranged in ascending order.
+    /// The list of connected components is sorted in ascending order
+    /// with respect to the smallest index of the included nodes.
     ///
     /// # Examples
     ///
@@ -177,24 +207,34 @@ impl UnionFind {
     /// assert_eq!(uf.groups(), vec![vec![0], vec![1, 2, 3], vec![4]]);
     /// ```
     pub fn groups(&mut self) -> Vec<Vec<usize>> {
-        let mut leader_to_idx: HashMap<usize, usize> = HashMap::new();
+        // Number of nodes in graph.
+        let element_num = self.parent_or_size.len();
+
+        // List of connected components.
         let mut groups: Vec<Vec<usize>> = vec![];
+        // Correspondence between the representative node and group index.
+        let mut leader_to_idx: Vec<Option<usize>> = vec![None; element_num];
 
-        for i in 0..self.parent_or_size.len() {
-            let leader = self.leader(i);
+        // Assign each node in the graph to a group.
+        for node in 0..element_num {
+            // Representative node of the connected component to which the `node` belongs.
+            let leader = self.leader(node);
 
-            if let Some(&idx) = leader_to_idx.get(&leader) {
-                groups[idx].push(i);
+            if let Some(group_idx) = leader_to_idx[leader] {
+                // Assign to an existing group.
+                groups[group_idx].push(node);
             } else {
-                leader_to_idx.insert(leader, groups.len());
-                groups.push(vec![i]);
+                // Adding a new group.
+                leader_to_idx[leader] = Some(groups.len());
+                groups.push(vec![node]);
             }
         }
 
+        // Return a list of groups.
         groups
     }
 
-    /// Returns the size of the connected component that contains the vertex `a`.
+    /// Return the number of nodes in the connected component to which node `a` belongs.
     ///
     /// # Examples
     ///
@@ -210,10 +250,14 @@ impl UnionFind {
     /// ```
     pub fn size(&mut self, a: usize) -> usize {
         let leader = self.leader(a);
-        -self.parent_or_size[leader] as usize
+
+        match self.parent_or_size[leader] {
+            ParentOrSize::Parent(_) => panic!(),
+            ParentOrSize::Size(size) => size,
+        }
     }
 
-    /// Adds a new vertex.
+    /// Add a new node with degree `0`.
     ///
     /// # Examples
     ///
@@ -228,11 +272,11 @@ impl UnionFind {
     /// assert_eq!(uf.groups(), vec![vec![0], vec![1, 2, 3], vec![4]]);
     /// ```
     pub fn add(&mut self) {
-        self.parent_or_size.push(-1);
+        self.parent_or_size.push(ParentOrSize::Size(1));
         self.group_num += 1;
     }
 
-    /// Returns the number of connected components.
+    /// Return the number of connected components.
     ///
     /// # Examples
     ///
@@ -250,7 +294,7 @@ impl UnionFind {
         self.group_num
     }
 
-    /// Returns the number of elements.
+    /// Return the number of nodes in the graph.
     ///
     /// # Examples
     ///
