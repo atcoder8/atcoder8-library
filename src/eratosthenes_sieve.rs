@@ -129,12 +129,12 @@ impl EratosthenesSieve {
     /// use atcoder8_library::eratosthenes_sieve::EratosthenesSieve;
     ///
     /// let sieve = EratosthenesSieve::new(27);
-    /// assert_eq!(sieve.create_divisors_list(1), vec![1]);
-    /// assert_eq!(sieve.create_divisors_list(12), vec![1, 2, 3, 4, 6, 12]);
-    /// assert_eq!(sieve.create_divisors_list(19), vec![1, 19]);
-    /// assert_eq!(sieve.create_divisors_list(27), vec![1, 3, 9, 27]);
+    /// assert_eq!(sieve.create_divisor_list(1), vec![1]);
+    /// assert_eq!(sieve.create_divisor_list(12), vec![1, 2, 3, 4, 6, 12]);
+    /// assert_eq!(sieve.create_divisor_list(19), vec![1, 19]);
+    /// assert_eq!(sieve.create_divisor_list(27), vec![1, 3, 9, 27]);
     /// ```
-    pub fn create_divisors_list(&self, n: usize) -> Vec<usize> {
+    pub fn create_divisor_list(&self, n: usize) -> Vec<usize> {
         assert_ne!(n, 0, "`n` must be at least 1.");
 
         let prime_factors = self.prime_factorization(n);
