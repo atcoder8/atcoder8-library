@@ -1,7 +1,5 @@
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, ShrAssign, Sub, SubAssign};
 
-use num::{One, Zero};
-
 pub trait RemEuclidU32 {
     fn rem_euclid_u32(self, modulus: u32) -> u32;
 }
@@ -22,7 +20,9 @@ pub fn modinv(a: u32, m: u32) -> u32 {
     assert_eq!(
         a.abs(),
         1,
-        "The inverse does not exist. gcd(a, m) = {}",
+        "Because `a` and `m` are not prime to each other, \
+there is no multiplicative inverse of `a` with `m` as the modulus.
+gcd(a, m) = {}",
         a.abs()
     );
 
@@ -288,32 +288,67 @@ macro_rules! generate_modint {
         }
 
         impl $modint_type {
+            /// Create a `Modint` instance that is equivalent to `val`.
             pub fn new<T: RemEuclidU32>(val: T) -> Self {
                 Self {
                     val: val.rem_euclid_u32($modulus),
                 }
             }
 
+            /// Create `x` such that `x * denom` is equivalent to `numer`.
             pub fn frac<T: RemEuclidU32>(numer: T, denom: T) -> Self {
                 Self::new(numer) / Self::new(denom)
             }
 
+            /// Create a `Modint` instance from a value of type `u32`
+            /// without any internal modulo operation.
+            /// The `val` must be less than the modulus.
             pub fn raw(val: u32) -> Self {
                 Self { val }
             }
 
+            /// Return the remainder as a value of type `u32`.
+            /// The value is a non-negative integer less than the modulus.
             pub fn val(&self) -> u32 {
                 self.val
             }
 
+            /// Return the multiplicative inverse.
             pub fn inv(&self) -> Self {
                 Self::new(modinv(self.val, $modulus))
+            }
+
+            /// Return a modint instance that is equivalent to 0.
+            pub fn zero() -> Self {
+                Self::new(0)
+            }
+
+            /// Return `true` only if it is equivalent to 0.
+            pub fn equiv_zero(&self) -> bool {
+                self.val == 0
+            }
+
+            /// Return `Modint` instance that is equivalent to 1.
+            pub fn one() -> Self {
+                Self::new(1)
+            }
+
+            /// Return `Modint` instance that is equivalent to 2.
+            pub fn two() -> Self {
+                Self::new(2)
             }
         }
 
         impl<T: RemEuclidU32> From<T> for $modint_type {
+            /// Create a `Modint` instance that is equivalent to `val`.
             fn from(val: T) -> Self {
                 Self::new(val)
+            }
+        }
+
+        impl std::fmt::Display for $modint_type {
+            fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+                write!(f, "{}", self.val)
             }
         }
 
@@ -379,22 +414,6 @@ macro_rules! generate_modint {
 
             fn neg(self) -> Self::Output {
                 Self::new(Self::MOD - self.val)
-            }
-        }
-
-        impl Zero for $modint_type {
-            fn zero() -> Self {
-                Self::new(0)
-            }
-
-            fn is_zero(&self) -> bool {
-                self.val == 0
-            }
-        }
-
-        impl One for $modint_type {
-            fn one() -> Self {
-                Self::new(1)
             }
         }
 
