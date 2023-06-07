@@ -121,6 +121,7 @@ impl RemEuclidU32 for i128 {
 }
 
 pub trait Pow<T: Copy + ShrAssign> {
+    /// Calculate the power of `n` using the iterative squaring method.
     fn pow(self, n: T) -> Self;
 }
 
