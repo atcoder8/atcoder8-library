@@ -49,8 +49,8 @@ impl SCC {
 }
 
 fn post_order_traversal(
-    graph: &Vec<Vec<usize>>,
-    visited: &mut Vec<bool>,
+    graph: &[Vec<usize>],
+    visited: &mut [bool],
     start_node: usize,
 ) -> Vec<usize> {
     let mut post_order = vec![];
