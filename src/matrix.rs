@@ -416,7 +416,7 @@ where
     }
 
     pub fn filled(shape: (usize, usize), x: T) -> Self {
-        Self::from_flattened(shape, vec![x.clone(); shape.0 * shape.1])
+        Self::from_flattened(shape, vec![x; shape.0 * shape.1])
     }
 
     pub fn zero(shape: (usize, usize)) -> Self
@@ -519,7 +519,7 @@ where
             elem
         };
 
-        (0..h).map(|i| calc_elem(i)).collect::<Vec<T>>().into()
+        (0..h).map(calc_elem).collect::<Vec<T>>().into()
     }
 }
 
@@ -673,6 +673,10 @@ where
         self.elements.len()
     }
 
+    pub fn is_empty(&self) -> bool {
+        self.elements.is_empty()
+    }
+
     pub fn elements(&self) -> &Vec<T> {
         &self.elements
     }
@@ -696,7 +700,7 @@ where
     }
 
     pub fn filled(x: T, n: usize) -> Self {
-        vec![x.clone(); n].into()
+        vec![x; n].into()
     }
 
     pub fn get(&self, idx: usize) -> &T {
@@ -721,7 +725,7 @@ where
             elem
         };
 
-        (0..h).map(|i| calc_elem(i)).collect::<Vec<T>>().into()
+        (0..h).map(calc_elem).collect::<Vec<T>>().into()
     }
 }
 
