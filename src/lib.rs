@@ -19,3 +19,4 @@ pub mod grid_board;
 pub mod doubling;
 pub mod scc;
 pub mod multiset;
+pub mod amplitude;
