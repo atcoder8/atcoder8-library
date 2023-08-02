@@ -17,27 +17,11 @@ enum Quadrant {
 
 impl PartialOrd for Quadrant {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        use Quadrant::*;
-
-        const QUADRANT_ORDER: [Quadrant; 8] = [
-            XAxisPositive,
-            One,
-            YAxisPositive,
-            Two,
-            XAxisNegative,
-            Three,
-            YAxisNegative,
-            Four,
-        ];
-
-        if self == &Origin || other == &Origin {
+        if self == &Quadrant::Origin || other == &Quadrant::Origin {
             return None;
         }
 
-        let self_pos = QUADRANT_ORDER.iter().position(|x| x == self).unwrap();
-        let other_pos = QUADRANT_ORDER.iter().position(|x| x == other).unwrap();
-
-        self_pos.partial_cmp(&other_pos)
+        self.to_index().partial_cmp(&other.to_index())
     }
 }
 
@@ -72,6 +56,20 @@ impl Quadrant {
                 Three
             }
         };
+    }
+
+    fn to_index(self) -> u8 {
+        match self {
+            Quadrant::Origin => 255,
+            Quadrant::XAxisPositive => 0,
+            Quadrant::One => 1,
+            Quadrant::YAxisPositive => 2,
+            Quadrant::Two => 3,
+            Quadrant::XAxisNegative => 4,
+            Quadrant::Three => 5,
+            Quadrant::YAxisNegative => 6,
+            Quadrant::Four => 7,
+        }
     }
 }
 
