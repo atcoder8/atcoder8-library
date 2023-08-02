@@ -20,3 +20,4 @@ pub mod doubling;
 pub mod scc;
 pub mod multiset;
 pub mod amplitude;
+pub mod amplitude_sort;
