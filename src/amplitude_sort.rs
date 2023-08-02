@@ -3,21 +3,21 @@ use std::cmp::Ordering;
 type Coord = (i64, i64);
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-enum Quadrant {
+enum Area {
     Origin,
     XAxisPositive,
-    One,
+    QuadrantOne,
     YAxisPositive,
-    Two,
+    QuadrantTwo,
     XAxisNegative,
-    Three,
+    QuadrantThree,
     YAxisNegative,
-    Four,
+    QuadrantFour,
 }
 
-impl PartialOrd for Quadrant {
+impl PartialOrd for Area {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        if self == &Quadrant::Origin || other == &Quadrant::Origin {
+        if self == &Area::Origin || other == &Area::Origin {
             return None;
         }
 
@@ -25,9 +25,9 @@ impl PartialOrd for Quadrant {
     }
 }
 
-impl Quadrant {
+impl Area {
     fn determine(coord: Coord) -> Self {
-        use Quadrant::*;
+        use Area::*;
 
         let (x, y) = coord;
 
@@ -45,44 +45,44 @@ impl Quadrant {
 
         return if x > 0 {
             if y > 0 {
-                One
+                QuadrantOne
             } else {
-                Four
+                QuadrantFour
             }
         } else {
             if y > 0 {
-                Two
+                QuadrantTwo
             } else {
-                Three
+                QuadrantThree
             }
         };
     }
 
     fn to_index(self) -> u8 {
         match self {
-            Quadrant::Origin => 255,
-            Quadrant::XAxisPositive => 0,
-            Quadrant::One => 1,
-            Quadrant::YAxisPositive => 2,
-            Quadrant::Two => 3,
-            Quadrant::XAxisNegative => 4,
-            Quadrant::Three => 5,
-            Quadrant::YAxisNegative => 6,
-            Quadrant::Four => 7,
+            Area::Origin => 255,
+            Area::XAxisPositive => 0,
+            Area::QuadrantOne => 1,
+            Area::YAxisPositive => 2,
+            Area::QuadrantTwo => 3,
+            Area::XAxisNegative => 4,
+            Area::QuadrantThree => 5,
+            Area::YAxisNegative => 6,
+            Area::QuadrantFour => 7,
         }
     }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 struct Amplitude {
-    quadrant: Quadrant,
+    area: Area,
     x: i64,
     y: i64,
 }
 
 impl PartialOrd for Amplitude {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        match self.quadrant.partial_cmp(&other.quadrant) {
+        match self.area.partial_cmp(&other.area) {
             Some(core::cmp::Ordering::Equal) => {}
             ord => return ord,
         }
@@ -110,7 +110,7 @@ impl Amplitude {
         assert_ne!(coord, (0, 0));
 
         Self {
-            quadrant: Quadrant::determine(coord),
+            area: Area::determine(coord),
             x: coord.0,
             y: coord.1,
         }
