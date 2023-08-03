@@ -1,3 +1,5 @@
+//! Sorts coordinates in ascending order with respect to amplitude.
+
 use std::cmp::Ordering;
 
 type Coord = (i64, i64);
@@ -105,7 +107,7 @@ impl Amplitude {
     }
 }
 
-/// Sorts a list of coordinates in ascending order with respect to amplitude.
+/// Sorts coordinates in ascending order with respect to amplitude.
 ///
 /// Coordinates with equal amplitude are sorted in ascending order with
 /// respect to their distance from the origin.
