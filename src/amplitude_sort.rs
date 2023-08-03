@@ -107,7 +107,7 @@ impl Ord for Amplitude {
 
 impl Amplitude {
     fn new(coord: Coord) -> Self {
-        assert_ne!(coord, (0, 0));
+        assert_ne!(coord, (0, 0), "Amplitude of the origin is not defined.");
 
         Self {
             area: Area::determine(coord),
