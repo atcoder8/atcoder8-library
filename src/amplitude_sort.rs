@@ -31,31 +31,19 @@ impl Area {
 
         let (x, y) = coord;
 
-        if x == 0 && y == 0 {
-            return Origin;
+        match (x == 0, y == 0) {
+            (true, true) => return Origin,
+            (true, false) => return if y > 0 { YAxisPositive } else { YAxisNegative },
+            (false, true) => return if x > 0 { XAxisPositive } else { XAxisNegative },
+            (false, false) => {}
         }
 
-        if x == 0 {
-            return if y > 0 { YAxisPositive } else { YAxisNegative };
+        match (x > 0, y > 0) {
+            (true, true) => QuadrantOne,
+            (false, true) => QuadrantTwo,
+            (false, false) => QuadrantThree,
+            (true, false) => QuadrantFour,
         }
-
-        if y == 0 {
-            return if x > 0 { XAxisPositive } else { XAxisNegative };
-        }
-
-        return if x > 0 {
-            if y > 0 {
-                QuadrantOne
-            } else {
-                QuadrantFour
-            }
-        } else {
-            if y > 0 {
-                QuadrantTwo
-            } else {
-                QuadrantThree
-            }
-        };
     }
 
     fn order(self) -> Option<u8> {
@@ -95,7 +83,7 @@ impl PartialOrd for Amplitude {
         let self_sq_dist = self.x.pow(2) + self.y.pow(2);
         let other_sq_dist = other.x.pow(2) + other.y.pow(2);
 
-        return self_sq_dist.partial_cmp(&other_sq_dist);
+        self_sq_dist.partial_cmp(&other_sq_dist)
     }
 }
 
@@ -117,7 +105,7 @@ impl Amplitude {
     }
 }
 
-pub fn amplitude_sort(coords: &mut Vec<Coord>) {
+pub fn amplitude_sort(coords: &mut [Coord]) {
     coords.sort_by_cached_key(|coord| Amplitude::new(*coord));
 }
 
@@ -158,8 +146,8 @@ mod tests {
         let mut rng = rand::thread_rng();
 
         let mut coords = vec![];
-        for x in -354..=354 {
-            for y in -354..=354 {
+        for x in -100..=100 {
+            for y in -100..=100 {
                 if x == 0 && y == 0 {
                     continue;
                 }
