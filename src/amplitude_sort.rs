@@ -17,11 +17,11 @@ enum Area {
 
 impl PartialOrd for Area {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        if self == &Area::Origin || other == &Area::Origin {
-            return None;
+        if let (Some(self_order), Some(other_order)) = (self.order(), other.order()) {
+            self_order.partial_cmp(&other_order)
+        } else {
+            None
         }
-
-        self.to_index().partial_cmp(&other.to_index())
     }
 }
 
@@ -58,17 +58,17 @@ impl Area {
         };
     }
 
-    fn to_index(self) -> u8 {
+    fn order(self) -> Option<u8> {
         match self {
-            Area::Origin => 255,
-            Area::XAxisPositive => 0,
-            Area::QuadrantOne => 1,
-            Area::YAxisPositive => 2,
-            Area::QuadrantTwo => 3,
-            Area::XAxisNegative => 4,
-            Area::QuadrantThree => 5,
-            Area::YAxisNegative => 6,
-            Area::QuadrantFour => 7,
+            Area::Origin => None,
+            Area::XAxisPositive => Some(0),
+            Area::QuadrantOne => Some(1),
+            Area::YAxisPositive => Some(2),
+            Area::QuadrantTwo => Some(3),
+            Area::XAxisNegative => Some(4),
+            Area::QuadrantThree => Some(5),
+            Area::YAxisNegative => Some(6),
+            Area::QuadrantFour => Some(7),
         }
     }
 }
