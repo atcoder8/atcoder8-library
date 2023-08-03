@@ -4,6 +4,7 @@ use std::cmp::Ordering;
 
 type Coord = (i64, i64);
 
+/// Classification of regions on the xy-plane.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum Area {
     Origin,
@@ -63,6 +64,7 @@ impl Area {
     }
 }
 
+/// Coordinate and classification of the area on the xy-plane for it.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 struct Amplitude {
     area: Area,
@@ -112,11 +114,18 @@ impl Amplitude {
 /// Coordinates with equal amplitude are sorted in ascending order with
 /// respect to their distance from the origin.
 ///
+/// Note: If the absolute value of the x- or y-coordinate value
+/// is greater or equal to `2^31` (31st power of 2), an overflow may occur.
+///
+/// # Panics
+///
+/// If the coordinate to be sorted contains the origin (0, 0), it will be panic.
+///
 /// # Examples
 ///
 /// ```
-/// use atcoder8_library::amplitude_sort::amplitude_sort;
-///
+/// # use atcoder8_library::amplitude_sort::amplitude_sort;
+/// #
 /// let mut coords: Vec<(i64, i64)> = vec![
 ///     (0, -3), (4, -2), (2, -1), (-2, -2), (1, -4), (-2, 1),
 ///     (2, 2), (-2, 0), (-1, -4), (0, -2), (1, 0), (0, 1),
