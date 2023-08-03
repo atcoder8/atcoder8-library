@@ -105,6 +105,32 @@ impl Amplitude {
     }
 }
 
+/// Sorts a list of coordinates in ascending order with respect to amplitude.
+///
+/// Coordinates with equal amplitude are sorted in ascending order with
+/// respect to their distance from the origin.
+///
+/// # Examples
+///
+/// ```
+/// use atcoder8_library::amplitude_sort::amplitude_sort;
+///
+/// let mut coords: Vec<(i64, i64)> = vec![
+///     (0, -3), (4, -2), (2, -1), (-2, -2), (1, -4), (-2, 1),
+///     (2, 2), (-2, 0), (-1, -4), (0, -2), (1, 0), (0, 1),
+///     (-1, 3), (0, 2), (1, 1), (2, 0), (-1, 0), (3, 1),
+/// ];
+/// amplitude_sort(&mut coords);
+///
+/// assert_eq!(
+///     coords,
+///     vec![
+///         (1, 0), (2, 0), (3, 1), (1, 1), (2, 2), (0, 1),
+///         (0, 2), (-1, 3), (-2, 1), (-1, 0), (-2, 0), (-2, -2),
+///         (-1, -4), (0, -2), (0, -3), (1, -4), (2, -1), (4, -2),
+///     ]
+/// );
+/// ```
 pub fn amplitude_sort(coords: &mut [Coord]) {
     coords.sort_by_cached_key(|coord| Amplitude::new(*coord));
 }
