@@ -6,7 +6,7 @@ type Coord = (i64, i64);
 
 /// Classification of regions on the xy-plane.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-enum Area {
+enum Region {
     Origin,
     XAxisPositive,
     QuadrantOne,
@@ -18,7 +18,7 @@ enum Area {
     QuadrantFour,
 }
 
-impl PartialOrd for Area {
+impl PartialOrd for Region {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
         if let (Some(self_order), Some(other_order)) = (self.order(), other.order()) {
             self_order.partial_cmp(&other_order)
@@ -28,9 +28,9 @@ impl PartialOrd for Area {
     }
 }
 
-impl Area {
+impl Region {
     fn determine(coord: Coord) -> Self {
-        use Area::*;
+        use Region::*;
 
         let (x, y) = coord;
 
@@ -51,30 +51,30 @@ impl Area {
 
     fn order(self) -> Option<u8> {
         match self {
-            Area::Origin => None,
-            Area::XAxisPositive => Some(0),
-            Area::QuadrantOne => Some(1),
-            Area::YAxisPositive => Some(2),
-            Area::QuadrantTwo => Some(3),
-            Area::XAxisNegative => Some(4),
-            Area::QuadrantThree => Some(5),
-            Area::YAxisNegative => Some(6),
-            Area::QuadrantFour => Some(7),
+            Region::Origin => None,
+            Region::XAxisPositive => Some(0),
+            Region::QuadrantOne => Some(1),
+            Region::YAxisPositive => Some(2),
+            Region::QuadrantTwo => Some(3),
+            Region::XAxisNegative => Some(4),
+            Region::QuadrantThree => Some(5),
+            Region::YAxisNegative => Some(6),
+            Region::QuadrantFour => Some(7),
         }
     }
 }
 
-/// Coordinate and classification of the area on the xy-plane for it.
+/// Coordinate and classification of the region on the xy-plane for it.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 struct Amplitude {
-    area: Area,
+    region: Region,
     x: i64,
     y: i64,
 }
 
 impl PartialOrd for Amplitude {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        match self.area.partial_cmp(&other.area) {
+        match self.region.partial_cmp(&other.region) {
             Some(core::cmp::Ordering::Equal) => {}
             ord => return ord,
         }
@@ -102,7 +102,7 @@ impl Amplitude {
         assert_ne!(coord, (0, 0), "Amplitude of the origin is not defined.");
 
         Self {
-            area: Area::determine(coord),
+            region: Region::determine(coord),
             x: coord.0,
             y: coord.1,
         }
