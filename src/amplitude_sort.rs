@@ -64,51 +64,6 @@ impl Region {
     }
 }
 
-/// Coordinate and classification of the region on the xy-plane for it.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-struct Amplitude {
-    region: Region,
-    x: i64,
-    y: i64,
-}
-
-impl PartialOrd for Amplitude {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        match self.region.partial_cmp(&other.region) {
-            Some(core::cmp::Ordering::Equal) => {}
-            ord => return ord,
-        }
-
-        match (self.y * other.x).partial_cmp(&(other.y * self.x)) {
-            Some(core::cmp::Ordering::Equal) => {}
-            ord => return ord,
-        }
-
-        let self_sq_dist = self.x.pow(2) + self.y.pow(2);
-        let other_sq_dist = other.x.pow(2) + other.y.pow(2);
-
-        self_sq_dist.partial_cmp(&other_sq_dist)
-    }
-}
-
-impl Ord for Amplitude {
-    fn cmp(&self, other: &Self) -> Ordering {
-        self.partial_cmp(other).unwrap()
-    }
-}
-
-impl Amplitude {
-    fn new(coord: Coord) -> Self {
-        assert_ne!(coord, (0, 0), "Amplitude of the origin is not defined.");
-
-        Self {
-            region: Region::determine(coord),
-            x: coord.0,
-            y: coord.1,
-        }
-    }
-}
-
 /// Sorts coordinates in ascending order with respect to amplitude.
 ///
 /// Coordinates with equal amplitude are sorted in ascending order with
@@ -143,7 +98,25 @@ impl Amplitude {
 /// );
 /// ```
 pub fn amplitude_sort(coords: &mut [Coord]) {
-    coords.sort_by_cached_key(|coord| Amplitude::new(*coord));
+    coords.sort_unstable_by(|&coord1, &coord2| {
+        match Region::determine(coord1)
+            .partial_cmp(&Region::determine(coord2))
+            .unwrap()
+        {
+            Ordering::Equal => {}
+            ord => return ord,
+        }
+
+        let (x1, y1) = coord1;
+        let (x2, y2) = coord2;
+
+        match (y1 * x2).cmp(&(y2 * x1)) {
+            core::cmp::Ordering::Equal => {}
+            ord => return ord,
+        }
+
+        (coord1.0.pow(2) + coord1.1.pow(2)).cmp(&(coord2.0.pow(2) + coord2.1.pow(2)))
+    });
 }
 
 #[cfg(test)]
