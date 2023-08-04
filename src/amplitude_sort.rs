@@ -111,7 +111,7 @@ pub fn amplitude_sort(coords: &mut [Coord]) {
         let (x2, y2) = coord2;
 
         match (y1 * x2).cmp(&(y2 * x1)) {
-            core::cmp::Ordering::Equal => {}
+            Ordering::Equal => {}
             ord => return ord,
         }
 
