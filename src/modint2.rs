@@ -7,7 +7,7 @@ use std::{
 
 type InnerType = u32;
 
-/// Return `x` such that `a * x` is equivalent to `1` with `m` as the modulus.
+/// Returns `x` such that `a * x` is equivalent to `1` with `m` as the modulus.
 fn modinv(a: u32, m: u32) -> u32 {
     let (mut a, mut b, mut s, mut t) = (a as i64, m as i64, 1, 0);
     while b != 0 {
@@ -31,7 +31,7 @@ because `a` and `m` are not prime to each other (gcd(a, m) = {}).",
 }
 
 pub trait Reminder {
-    /// Return the remainder divided by `modulus`.
+    /// Returns the remainder divided by `modulus`.
     fn reminder(self, modulus: InnerType) -> InnerType;
 }
 
@@ -47,7 +47,7 @@ macro_rules! impl_reminder_for_small_unsigned_int {
     };
 }
 
-// Implement `Reminder` trait for `u8`, `u16` and `u32`.
+// Implements `Reminder` trait for `u8`, `u16` and `u32`.
 impl_reminder_for_small_unsigned_int!(u8, u16, u32);
 
 macro_rules! impl_reminder_for_large_unsigned_int {
@@ -62,7 +62,7 @@ macro_rules! impl_reminder_for_large_unsigned_int {
     };
 }
 
-// Implement `Reminder` trait for `usize`, `u64` and `u128`.
+// Implements `Reminder` trait for `usize`, `u64` and `u128`.
 impl_reminder_for_large_unsigned_int!(usize, u64, u128);
 
 macro_rules! impl_reminder_for_small_signed_int {
@@ -77,7 +77,7 @@ macro_rules! impl_reminder_for_small_signed_int {
     };
 }
 
-// Implement `Reminder` trait for `i8`, `i16` and `i32`.
+// Implements `Reminder` trait for `i8`, `i16` and `i32`.
 impl_reminder_for_small_signed_int!(i8, i16, i32);
 
 macro_rules! impl_reminder_for_large_signed_int {
@@ -92,7 +92,7 @@ macro_rules! impl_reminder_for_large_signed_int {
     };
 }
 
-// Implement `Reminder` trait for `isize`, `i64` and `i128`.
+// Implements `Reminder` trait for `isize`, `i64` and `i128`.
 impl_reminder_for_large_signed_int!(isize, i64, i128);
 
 /// Structure for modular arithmetic.
@@ -108,7 +108,7 @@ impl<const MODULUS: InnerType> std::fmt::Display for Modint<MODULUS> {
 }
 
 impl<const MODULUS: InnerType> Default for Modint<MODULUS> {
-    /// Return a `Modint` instance equivalent to `0`.
+    /// Returns a `Modint` instance equivalent to `0`.
     fn default() -> Self {
         Self::raw(0)
     }
@@ -293,12 +293,12 @@ impl<'a, const MODULUS: InnerType> Product<&'a Modint<MODULUS>> for Modint<MODUL
 }
 
 impl<const MODULUS: InnerType> Modint<MODULUS> {
-    /// Return the modulus.
+    /// Returns the modulus.
     pub fn modulus() -> InnerType {
         MODULUS
     }
 
-    /// Return a `Modint` instance equivalent to `a`.
+    /// Returns a `Modint` instance equivalent to `a`.
     pub fn new<T>(a: T) -> Self
     where
         T: Reminder,
@@ -308,12 +308,12 @@ impl<const MODULUS: InnerType> Modint<MODULUS> {
         }
     }
 
-    /// Create a `Modint` instance from a non-negative integer less than `MODULUS`.
+    /// Creates a `Modint` instance from a non-negative integer less than `MODULUS`.
     pub fn raw(a: InnerType) -> Self {
         Self { rem: a }
     }
 
-    /// Return `x` such that `x * q` is equivalent to `p`.
+    /// Returns `x` such that `x * q` is equivalent to `p`.
     pub fn frac<T>(p: T, q: T) -> Self
     where
         T: Reminder,
@@ -321,20 +321,20 @@ impl<const MODULUS: InnerType> Modint<MODULUS> {
         Self::new(p) / Self::new(q)
     }
 
-    /// Return the remainder divided by `MODULUS`.
+    /// Returns the remainder divided by `MODULUS`.
     /// The returned value is a non-negative integer less than `MODULUS`.
     pub fn rem(self) -> InnerType {
         self.rem
     }
 
-    /// Return the modular multiplicative inverse.
+    /// Returns the modular multiplicative inverse.
     pub fn inv(self) -> Self {
         Self {
             rem: modinv(self.rem, MODULUS),
         }
     }
 
-    /// Calculate the power of `exp` using the iterative squaring method.
+    /// Calculates the power of `exp` using the iterative squaring method.
     pub fn pow<T>(self, exp: T) -> Self
     where
         T: ToExponent,
