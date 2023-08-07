@@ -21,3 +21,4 @@ pub mod scc;
 pub mod multiset;
 pub mod amplitude;
 pub mod amplitude_sort;
+pub mod bit_sweep;
