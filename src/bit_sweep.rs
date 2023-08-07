@@ -2,7 +2,7 @@ use fixedbitset::FixedBitSet;
 
 /// Applies the sweep method to the boolean matrix and returns the rank.
 ///
-/// When expanded is non-zero, it is processed as an expanded matrix.
+/// When `extended` is non-zero, it is processed as an augmented matrix.
 ///
 /// # Arguments
 ///
