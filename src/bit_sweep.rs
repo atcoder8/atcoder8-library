@@ -1,7 +1,14 @@
 use fixedbitset::FixedBitSet;
 
 /// Applies the sweep method to the boolean matrix and returns the rank.
-pub fn bit_sweep(bool_mat: &mut [FixedBitSet], extended: bool) -> usize {
+///
+/// When expanded is non-zero, it is processed as an expanded matrix.
+///
+/// # Arguments
+///
+/// * bool_mat - Matrix with boolean-valued elements.
+/// * extended - Number of appended columns.
+pub fn bit_sweep(bool_mat: &mut [FixedBitSet], extended: usize) -> usize {
     if bool_mat.is_empty() {
         return 0;
     }
@@ -9,12 +16,17 @@ pub fn bit_sweep(bool_mat: &mut [FixedBitSet], extended: bool) -> usize {
     let (h, w) = (bool_mat.len(), bool_mat[0].len());
 
     assert!(
+        w >= extended,
+        "The number of columns in the entire matrix is less than the number of appended columns."
+    );
+
+    assert!(
         bool_mat.iter().all(|x| x.len() == w),
         "Length of each bitset must be equal."
     );
 
     let mut rank = 0;
-    for sweep_pos in 0..(w - extended as usize) {
+    for sweep_pos in 0..(w - extended) {
         let pivot = (rank..h).find(|&row| bool_mat[row][sweep_pos]);
         if let Some(pivot) = pivot {
             bool_mat.swap(rank, pivot);
@@ -52,7 +64,7 @@ mod tests {
             .map(|bitset| FixedBitSet::with_capacity_and_blocks(6, [bitset]))
             .collect();
 
-        let rank = bit_sweep(&mut bool_mat, true);
+        let rank = bit_sweep(&mut bool_mat, 1);
         assert_eq!(rank, N);
 
         // Expected matrix after processing
@@ -79,7 +91,7 @@ mod tests {
             .map(|bitset| FixedBitSet::with_capacity_and_blocks(3, [bitset]))
             .collect();
 
-        let rank = bit_sweep(&mut bool_mat, false);
+        let rank = bit_sweep(&mut bool_mat, 0);
         assert_eq!(rank, 1);
 
         // Expected matrix after processing
@@ -94,6 +106,55 @@ mod tests {
     }
 
     #[test]
+    fn test_calc_inverse_matrix() {
+        // Matrix before processing
+        // [[101|100]
+        //  [001|010]
+        //  [010|001]]
+        let mut bool_mat: Vec<FixedBitSet> = [0b001101, 0b010100, 0b100010]
+            .into_iter()
+            .map(|bitset| FixedBitSet::with_capacity_and_blocks(6, [bitset]))
+            .collect();
+
+        let rank = bit_sweep(&mut bool_mat, 3);
+        assert_eq!(rank, 3);
+
+        // Expected matrix after processing
+        // [[100|110]
+        //  [010|001]
+        //  [001|010]]
+        let expected: Vec<FixedBitSet> = [0b011001, 0b100010, 0b010100]
+            .into_iter()
+            .map(|bitset| FixedBitSet::with_capacity_and_blocks(6, [bitset]))
+            .collect();
+        assert_eq!(bool_mat, expected);
+    }
+
+    #[test]
+    fn test_zero_matrix() {
+        // Matrix
+        // [[000]
+        //  [000]
+        //  [000]]
+        let mut bool_mat: Vec<FixedBitSet> = vec![FixedBitSet::with_capacity(3); 3];
+
+        let rank = bit_sweep(&mut bool_mat, 0);
+        assert_eq!(rank, 0);
+
+        assert_eq!(bool_mat, vec![FixedBitSet::with_capacity(3); 3]);
+    }
+
+    #[test]
+    fn test_empty() {
+        let mut bool_mat: Vec<FixedBitSet> = vec![];
+
+        let rank = bit_sweep(&mut bool_mat, 0);
+        assert_eq!(rank, 0);
+
+        assert_eq!(bool_mat, vec![]);
+    }
+
+    #[test]
     fn test_vertically_elongated() {
         // Matrix before processing
         // [[101]
@@ -105,7 +166,7 @@ mod tests {
             .map(|bitset| FixedBitSet::with_capacity_and_blocks(3, [bitset]))
             .collect();
 
-        let rank = bit_sweep(&mut bool_mat, false);
+        let rank = bit_sweep(&mut bool_mat, 0);
         assert_eq!(rank, 3);
 
         // Expected matrix after processing
@@ -130,7 +191,7 @@ mod tests {
             .map(|bitset| FixedBitSet::with_capacity_and_blocks(6, [bitset]))
             .collect();
 
-        let rank = bit_sweep(&mut bool_mat, true);
+        let rank = bit_sweep(&mut bool_mat, 1);
         assert_eq!(rank, 2);
 
         // Expected matrix after processing
@@ -149,7 +210,7 @@ mod tests {
         // [[000|0]]
         let mut bool_mat = vec![FixedBitSet::with_capacity_and_blocks(4, [0b0000])];
 
-        let rank = bit_sweep(&mut bool_mat, true);
+        let rank = bit_sweep(&mut bool_mat, 1);
         assert_eq!(rank, 0);
 
         assert_eq!(
@@ -164,7 +225,7 @@ mod tests {
         // [[000|1]]
         let mut bool_mat = vec![FixedBitSet::with_capacity_and_blocks(4, [0b1000])];
 
-        let rank = bit_sweep(&mut bool_mat, true);
+        let rank = bit_sweep(&mut bool_mat, 1);
         assert_eq!(rank, 0);
 
         assert_eq!(
@@ -179,7 +240,7 @@ mod tests {
         // [[00101|1]]
         let mut bool_mat = vec![FixedBitSet::with_capacity_and_blocks(6, [0b110100])];
 
-        let rank = bit_sweep(&mut bool_mat, true);
+        let rank = bit_sweep(&mut bool_mat, 1);
         assert_eq!(rank, 1);
 
         assert_eq!(
