@@ -1,5 +1,6 @@
 use fixedbitset::FixedBitSet;
 
+/// Applies the sweep method to the boolean matrix and returns the rank.
 pub fn bit_sweep(bool_mat: &mut [FixedBitSet], extended: bool) -> usize {
     if bool_mat.is_empty() {
         return 0;
