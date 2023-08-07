@@ -27,19 +27,21 @@ pub fn bit_sweep(mat: &mut [FixedBitSet], extended: usize) -> usize {
 
     let mut rank = 0;
     for sweep_pos in 0..(w - extended) {
-        let pivot = (rank..h).find(|&row| mat[row][sweep_pos]);
-        if let Some(pivot) = pivot {
-            mat.swap(rank, pivot);
+        let pivot = match (rank..h).find(|&row| mat[row][sweep_pos]) {
+            Some(pivot) => pivot,
+            None => continue,
+        };
 
-            let pivot_bitset = mat[rank].clone();
-            for (row, bitset) in mat.iter_mut().enumerate() {
-                if row != rank && bitset[sweep_pos] {
-                    bitset.symmetric_difference_with(&pivot_bitset);
-                }
+        mat.swap(rank, pivot);
+
+        let pivot_bitset = mat[rank].clone();
+        for (row, bitset) in mat.iter_mut().enumerate() {
+            if row != rank && bitset[sweep_pos] {
+                bitset.symmetric_difference_with(&pivot_bitset);
             }
-
-            rank += 1;
         }
+
+        rank += 1;
     }
 
     rank
