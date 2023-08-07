@@ -1,6 +1,9 @@
 //! This module implements modular arithmetic.
 
-use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign};
+use std::{
+    iter::{Product, Sum},
+    ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign},
+};
 
 type InnerType = u32;
 
@@ -262,6 +265,30 @@ where
 {
     fn div_assign(&mut self, rhs: T) {
         *self /= Modint::new(rhs);
+    }
+}
+
+impl<const MODULUS: InnerType> Sum<Modint<MODULUS>> for Modint<MODULUS> {
+    fn sum<I: Iterator<Item = Modint<MODULUS>>>(iter: I) -> Self {
+        iter.fold(Self::new(0), |acc, x| acc + x)
+    }
+}
+
+impl<'a, const MODULUS: InnerType> Sum<&'a Modint<MODULUS>> for Modint<MODULUS> {
+    fn sum<I: Iterator<Item = &'a Modint<MODULUS>>>(iter: I) -> Self {
+        iter.fold(Self::new(0), |acc, &x| acc + x)
+    }
+}
+
+impl<const MODULUS: InnerType> Product<Modint<MODULUS>> for Modint<MODULUS> {
+    fn product<I: Iterator<Item = Modint<MODULUS>>>(iter: I) -> Self {
+        iter.fold(Self::new(1), |acc, x| acc * x)
+    }
+}
+
+impl<'a, const MODULUS: InnerType> Product<&'a Modint<MODULUS>> for Modint<MODULUS> {
+    fn product<I: Iterator<Item = &'a Modint<MODULUS>>>(iter: I) -> Self {
+        iter.fold(Self::new(1), |acc, &x| acc * x)
     }
 }
 
@@ -536,5 +563,77 @@ mod tests {
     #[should_panic]
     fn test_not_coprime() {
         Modint::<21>::new(14).inv();
+    }
+
+    #[test]
+    fn test_into_iter_sum() {
+        let seq = vec![
+            Mint::new(314159265),
+            Mint::new(358979323),
+            Mint::new(846264338),
+        ];
+
+        assert_eq!(seq.into_iter().sum::<Mint>(), Mint::new(519402919));
+    }
+
+    #[test]
+    fn test_into_iter_sum_empty() {
+        let seq: Vec<Mint> = vec![];
+
+        assert_eq!(seq.into_iter().sum::<Mint>(), Mint::new(0));
+    }
+
+    #[test]
+    fn test_iter_sum() {
+        let seq = vec![
+            Mint::new(314159265),
+            Mint::new(358979323),
+            Mint::new(846264338),
+        ];
+
+        assert_eq!(seq.iter().sum::<Mint>(), Mint::new(519402919));
+    }
+
+    #[test]
+    fn test_iter_sum_empty() {
+        let seq: Vec<Mint> = vec![];
+
+        assert_eq!(seq.iter().sum::<Mint>(), Mint::new(0));
+    }
+
+    #[test]
+    fn test_into_iter_product() {
+        let seq = vec![
+            Mint::new(314159265),
+            Mint::new(358979323),
+            Mint::new(846264338),
+        ];
+
+        assert_eq!(seq.into_iter().product::<Mint>(), Mint::new(264776062));
+    }
+
+    #[test]
+    fn test_into_iter_product_empty() {
+        let seq: Vec<Mint> = vec![];
+
+        assert_eq!(seq.into_iter().product::<Mint>(), Mint::new(1));
+    }
+
+    #[test]
+    fn test_iter_product() {
+        let seq = vec![
+            Mint::new(314159265),
+            Mint::new(358979323),
+            Mint::new(846264338),
+        ];
+
+        assert_eq!(seq.iter().product::<Mint>(), Mint::new(264776062));
+    }
+
+    #[test]
+    fn test_iter_product_empty() {
+        let seq: Vec<Mint> = vec![];
+
+        assert_eq!(seq.iter().product::<Mint>(), Mint::new(1));
     }
 }
