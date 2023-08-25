@@ -156,9 +156,9 @@ mod tests {
     fn gen_random_seq() -> Vec<usize> {
         let mut rng = rand::thread_rng();
 
-        let n = rng.gen_range(0, 10);
+        let n = rng.gen_range(0..10);
 
-        (0..n).map(|_| rng.gen_range(0, 10)).collect()
+        (0..n).map(|_| rng.gen_range(0..10)).collect()
     }
 
     fn create_debug_message<T>(
