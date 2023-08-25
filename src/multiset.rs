@@ -1,6 +1,10 @@
 //! Implements an ordered multiset using `BTreeMap`.
 
-use std::{collections::BTreeMap, iter::FromIterator};
+use std::{
+    collections::{btree_map, BTreeMap},
+    iter::FromIterator,
+    ops::RangeBounds,
+};
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Multiset<T>
@@ -58,6 +62,8 @@ where
     /// Each element of `BTreeMap` must consist of a pair of elements
     /// contained in the multiset and their number.
     fn from(value: BTreeMap<T, usize>) -> Self {
+        let mut value = value;
+        value.retain(|_, cnt| *cnt != 0);
         let len: usize = value.values().sum();
 
         Self { map: value, len }
@@ -156,5 +162,107 @@ where
     pub fn remove_all(&mut self, value: &T) {
         self.len -= self.count(value);
         self.map.remove(value);
+    }
+
+    /// Constructs an iterator of pairs of values and their number in the range specified by `range`.
+    pub fn range<R>(&self, range: R) -> btree_map::Range<T, usize>
+    where
+        R: RangeBounds<T>,
+    {
+        self.map.range(range)
+    }
+
+    /// Constructs an iterator of deduplicated values.
+    pub fn deduplicated_values(&self) -> btree_map::Keys<T, usize> {
+        self.map.keys()
+    }
+
+    /// Gets an iterator that visits the elements in the `Multiset` in ascending order.
+    pub fn iter(&self) -> Iter<T> {
+        Iter::new(self)
+    }
+
+    /// Returns a `BTreeMap` containing pairs of values and counts as elements.
+    pub fn to_map(self) -> BTreeMap<T, usize> {
+        self.map
+    }
+
+    /// Returns a `Vec` with elements stored in ascending order.
+    pub fn to_vec(&self) -> Vec<T>
+    where
+        T: Clone,
+    {
+        self.iter().cloned().collect()
+    }
+}
+
+pub struct Iter<'a, T>
+where
+    T: Ord,
+{
+    iter: btree_map::Iter<'a, T, usize>,
+    value: Option<&'a T>,
+    rem: usize,
+}
+
+impl<'a, T> Iterator for Iter<'a, T>
+where
+    T: Ord,
+{
+    type Item = &'a T;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        while self.rem == 0 {
+            if let Some((value, rem)) = self.iter.next() {
+                self.value = Some(value);
+                self.rem = *rem;
+            } else {
+                return None;
+            }
+        }
+
+        self.rem -= 1;
+
+        self.value
+    }
+}
+
+impl<'a, T> Iter<'a, T>
+where
+    T: Ord,
+{
+    pub fn new(mset: &'a Multiset<T>) -> Self {
+        let mut iter = mset.map.iter();
+
+        let (value, rem) = if let Some((value, cnt)) = iter.next() {
+            (Some(value), *cnt)
+        } else {
+            (None, 0)
+        };
+
+        Self { iter, value, rem }
+    }
+}
+
+#[cfg(test)]
+pub mod test {
+    use super::*;
+
+    #[test]
+    fn test_range() {
+        let mset = Multiset::from(vec![1, 2, 5, 5, 5, 7, 8, 9, 9, 10]);
+        assert_eq!(
+            mset.range(3..10).collect::<Vec<_>>(),
+            vec![(&5, &3), (&7, &1), (&8, &1), (&9, &2)]
+        );
+    }
+
+    #[test]
+    fn test_to_vec() {
+        let mset = Multiset::from(vec![3, 1, 4, 1, 5, 9, 2, 6, 5, 3]);
+        assert_eq!(
+            mset.iter().cloned().collect::<Vec<_>>(),
+            vec![1, 1, 2, 3, 3, 4, 5, 5, 6, 9]
+        );
     }
 }
