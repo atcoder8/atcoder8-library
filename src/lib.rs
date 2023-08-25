@@ -22,3 +22,5 @@ pub mod multiset;
 pub mod amplitude;
 pub mod amplitude_sort;
 pub mod bit_sweep;
+pub mod gaussian_elimination;
+pub mod grid;
