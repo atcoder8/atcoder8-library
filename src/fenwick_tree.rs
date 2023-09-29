@@ -36,6 +36,7 @@ where
         for (i, x) in t.into_iter().enumerate() {
             ft.add(i, x);
         }
+
         ft
     }
 }
@@ -111,12 +112,13 @@ where
 
     /// Compute the sum of the range [0, r).
     fn inner_sum(&self, r: usize) -> T {
-        let mut r = r;
         let mut s = T::default();
+        let mut r = r;
         while r > 0 {
             s += self.0[r - 1].clone();
-            r -= r & r.overflowing_neg().0;
+            r -= r & r.wrapping_neg();
         }
+
         s
     }
 
