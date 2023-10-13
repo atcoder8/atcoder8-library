@@ -81,7 +81,7 @@ where
     }
 
     /// Returns the `x` position of the unique elements sorted in ascending order.
-    pub fn position(&mut self, x: &T) -> usize {
+    pub fn zip(&mut self, x: &T) -> usize {
         self.organize();
 
         self.seq.binary_search(x).unwrap_or_else(|_| {
@@ -92,7 +92,7 @@ where
     /// Returns the `index`-th (0-based) unique element.
     ///
     /// Returns `None` if the `index`-th element does not exist.
-    pub fn get(&mut self, index: usize) -> Option<&T> {
+    pub fn unzip(&mut self, index: usize) -> Option<&T> {
         self.organize();
 
         self.seq.get(index)
@@ -116,22 +116,22 @@ mod tests {
         let mut uniq_ord = UniqueOrdering::from(seq);
 
         assert_eq!(uniq_ord.unique_len(), 5);
-        assert_eq!(uniq_ord.position(&4), 2);
+        assert_eq!(uniq_ord.zip(&4), 2);
         assert_eq!(uniq_ord[2], 4);
 
         uniq_ord.push(1);
         uniq_ord.push(2);
 
         assert_eq!(uniq_ord.unique_len(), 6);
-        assert_eq!(uniq_ord.position(&1), 0);
+        assert_eq!(uniq_ord.zip(&1), 0);
         assert_eq!(uniq_ord[0], 1);
-        assert_eq!(uniq_ord.position(&2), 1);
+        assert_eq!(uniq_ord.zip(&2), 1);
         assert_eq!(uniq_ord[1], 2);
 
         uniq_ord.extend(vec![5, 9, 5, 20, 5]);
 
         assert_eq!(uniq_ord.unique_len(), 7);
-        assert_eq!(uniq_ord.position(&20), 6);
+        assert_eq!(uniq_ord.zip(&20), 6);
         assert_eq!(uniq_ord[6], 20);
     }
 }
