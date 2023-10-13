@@ -93,6 +93,8 @@ where
     ///
     /// Returns `None` if the `index`-th element does not exist.
     pub fn get(&mut self, index: usize) -> Option<&T> {
+        self.organize();
+
         self.seq.get(index)
     }
 
