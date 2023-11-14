@@ -27,3 +27,4 @@ pub mod grid;
 pub mod low_link;
 pub mod unique_ordering;
 pub mod lazy_segtree;
+pub mod math;
