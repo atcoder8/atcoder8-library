@@ -14,14 +14,12 @@ use std::ops::{AddAssign, RangeBounds, Sub, SubAssign};
 /// let ft = FenwickTree::from(vec![3, -1, 4, 1, -5, 9, 2]);
 /// assert_eq!(ft.sum(2..), 11);
 /// ```
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct FenwickTree<T>(Vec<T>)
-where
-    T: Clone + Default + Sub<T, Output = T> + AddAssign<T>;
+#[derive(Debug, Clone)]
+pub struct FenwickTree<T>(Vec<T>);
 
 impl<T> From<Vec<T>> for FenwickTree<T>
 where
-    T: Clone + Default + Sub<T, Output = T> + AddAssign<T>,
+    T: Default + Clone + AddAssign<T>,
 {
     /// # Examples
     ///
@@ -41,10 +39,7 @@ where
     }
 }
 
-impl<T> FenwickTree<T>
-where
-    T: Clone + Default + Sub<T, Output = T> + AddAssign<T>,
-{
+impl<T> FenwickTree<T> {
     /// Constructs a `FenwickTree<T>` with `n` elements.
     ///
     /// Each element is initialized with `T::default()`.
@@ -57,7 +52,10 @@ where
     /// let ft = FenwickTree::<i32>::new(5);
     /// assert_eq!(ft.sum(..), 0);
     /// ```
-    pub fn new(n: usize) -> Self {
+    pub fn new(n: usize) -> Self
+    where
+        T: Default + Clone,
+    {
         FenwickTree(vec![T::default(); n])
     }
 
@@ -74,7 +72,10 @@ where
     /// ft.add(3, 100);
     /// assert_eq!(ft.sum(2..6), 109);
     /// ```
-    pub fn add(&mut self, p: usize, x: T) {
+    pub fn add(&mut self, p: usize, x: T)
+    where
+        T: Clone + AddAssign<T>,
+    {
         let FenwickTree(data) = self;
         let n = data.len();
 
@@ -83,6 +84,35 @@ where
         let mut p = p + 1;
         while p <= n {
             data[p - 1] += x.clone();
+            p += p & p.overflowing_neg().0;
+        }
+    }
+
+    /// Subtract `x` from the `p`-th element.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use atcoder8_library::fenwick_tree::FenwickTree;
+    ///
+    /// let mut ft = FenwickTree::<u32>::from(vec![3, 1, 4, 1, 5, 9, 2]);
+    /// assert_eq!(ft.sum(2..6), 19);
+    ///
+    /// ft.sub(3, 1);
+    /// assert_eq!(ft.sum(2..6), 18);
+    /// ```
+    pub fn sub(&mut self, p: usize, x: T)
+    where
+        T: Clone + SubAssign<T>,
+    {
+        let FenwickTree(data) = self;
+        let n = data.len();
+
+        assert!(p < n);
+
+        let mut p = p + 1;
+        while p <= n {
+            data[p - 1] -= x.clone();
             p += p & p.overflowing_neg().0;
         }
     }
@@ -100,18 +130,24 @@ where
     /// ft.set(3, 100);
     /// assert_eq!(ft.sum(2..6), 108);
     /// ```
-    pub fn set(&mut self, p: usize, x: T) {
+    pub fn set(&mut self, p: usize, x: T)
+    where
+        T: Default + Clone + AddAssign<T> + Sub<T, Output = T> + SubAssign<T>,
+    {
         let FenwickTree(data) = self;
         let n = data.len();
 
         assert!(p < n);
 
-        let t = x - self.get(p);
-        self.add(p, t);
+        self.sub(p, self.get(p));
+        self.add(p, x);
     }
 
     /// Compute the sum of the range [0, r).
-    fn inner_sum(&self, r: usize) -> T {
+    fn inner_sum(&self, r: usize) -> T
+    where
+        T: Default + Clone + AddAssign<T>,
+    {
         let mut s = T::default();
         let mut r = r;
         while r > 0 {
@@ -138,6 +174,7 @@ where
     /// ```
     pub fn sum<R>(&self, rng: R) -> T
     where
+        T: Default + Clone + AddAssign<T> + Sub<T, Output = T>,
         R: RangeBounds<usize>,
     {
         let n = self.0.len();
@@ -174,40 +211,12 @@ where
     /// let ft = FenwickTree::from(vec![3, -1, 4, -1, 5]);
     /// assert_eq!(ft.get(2), 4);
     /// ```
-    pub fn get(&self, p: usize) -> T {
+    pub fn get(&self, p: usize) -> T
+    where
+        T: Default + Clone + AddAssign<T> + Sub<T, Output = T>,
+    {
         assert!(p < self.0.len());
 
         self.sum(p..=p)
-    }
-}
-
-impl<T> FenwickTree<T>
-where
-    T: Clone + Default + Sub<T, Output = T> + AddAssign<T> + SubAssign<T>,
-{
-    /// Subtract `x` from the `p`-th element.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use atcoder8_library::fenwick_tree::FenwickTree;
-    ///
-    /// let mut ft = FenwickTree::<u32>::from(vec![3, 1, 4, 1, 5, 9, 2]);
-    /// assert_eq!(ft.sum(2..6), 19);
-    ///
-    /// ft.sub(3, 1);
-    /// assert_eq!(ft.sum(2..6), 18);
-    /// ```
-    pub fn sub(&mut self, p: usize, x: T) {
-        let FenwickTree(data) = self;
-        let n = data.len();
-
-        assert!(p < n);
-
-        let mut p = p + 1;
-        while p <= n {
-            data[p - 1] -= x.clone();
-            p += p & p.overflowing_neg().0;
-        }
     }
 }
