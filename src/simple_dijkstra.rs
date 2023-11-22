@@ -71,8 +71,7 @@ where
 ///
 /// # Arguments
 ///
-/// * `node_num` - Number of nodes.
-/// * `edges` - Weighted edges.
+/// * `graphs` - Adjacency list.
 /// * `start` - starting point.
 ///
 /// # Examples
