@@ -114,7 +114,7 @@ where
     costs
 }
 
-/// Macros to implement `Weight` trait to the built-in integer types.
+/// Macro to implement `Weight` trait to the built-in integer types.
 macro_rules! impl_weight_for_builtin_integer {
     ($($ty: tt), *) => {
         $(
