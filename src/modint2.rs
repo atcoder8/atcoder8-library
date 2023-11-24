@@ -404,6 +404,90 @@ macro_rules! impl_to_exponent_for_signed_int {
 
 impl_to_exponent_for_signed_int!(isize, i8, i16, i32, i64, i128);
 
+#[derive(Debug, Clone)]
+pub struct Factorial<Modint> {
+    /// Upper limit of available factorial argument.
+    upper_limit: usize,
+
+    /// List of factorials.
+    fac: Vec<Modint>,
+
+    /// List of factorial inverses.
+    inv_fac: Vec<Modint>,
+}
+
+impl<const MODULUS: InnerType> Factorial<Modint<MODULUS>> {
+    /// Calculates factorial and its inverse for non-negative integers bellow `upper_limit`.
+    pub fn new(upper_limit: usize) -> Self {
+        let mut fac = vec![Modint::new(1); upper_limit + 1];
+        for i in 0..upper_limit {
+            fac[i + 1] = fac[i] * (i + 1);
+        }
+
+        let mut inv_fac = vec![fac[upper_limit].inv(); upper_limit + 1];
+        for i in (0..upper_limit).rev() {
+            inv_fac[i] = inv_fac[i + 1] * (i + 1);
+        }
+
+        Self {
+            upper_limit,
+            fac,
+            inv_fac,
+        }
+    }
+
+    /// Returns the factorial `n`.
+    pub fn factorial(&self, n: usize) -> Modint<MODULUS> {
+        assert!(
+            n <= self.upper_limit,
+            "The maximum number of available factorial arguments has been exceeded."
+        );
+
+        self.fac[n]
+    }
+
+    /// Returns the inverse of the factorial of `n`.
+    pub fn inverse_factorial(&self, n: usize) -> Modint<MODULUS> {
+        assert!(
+            n <= self.upper_limit,
+            "The maximum number of available factorial arguments has been exceeded."
+        );
+
+        self.inv_fac[n]
+    }
+
+    /// Calculates the number of ways to select and arrange `k` objects from `n` unique objects.
+    pub fn permutations(&self, n: usize, k: usize) -> Modint<MODULUS> {
+        if n >= k {
+            self.factorial(n) * self.inverse_factorial(n - k)
+        } else {
+            Modint::new(0)
+        }
+    }
+
+    /// Calculates the number of ways to select `k` objects from `n` unique objects.
+    pub fn combinations(&self, n: usize, k: usize) -> Modint<MODULUS> {
+        if n >= k {
+            self.factorial(n) * self.inverse_factorial(n - k) * self.inverse_factorial(k)
+        } else {
+            Modint::new(0)
+        }
+    }
+
+    /// Calculates the number of ways to select `k` objects from `n` unique objects, allowing for duplicates.
+    pub fn combinations_with_repetition(&self, n: usize, k: usize) -> Modint<MODULUS> {
+        if n == 0 {
+            return if k == 0 {
+                Modint::new(1)
+            } else {
+                Modint::new(0)
+            };
+        }
+
+        self.combinations(n + k - 1, k)
+    }
+}
+
 /// The type `Modint` with 1000000007 as the modulus.
 pub type Modint1000000007 = Modint<1000000007>;
 
@@ -635,5 +719,101 @@ mod tests {
         let seq: Vec<Mint> = vec![];
 
         assert_eq!(seq.iter().product::<Mint>(), Mint::new(1));
+    }
+
+    #[test]
+    fn test_factorial() {
+        const UPPER_LIMIT: usize = 1000;
+
+        let factorial: Factorial<Mint> = Factorial::new(UPPER_LIMIT);
+
+        for n in 0..=UPPER_LIMIT {
+            assert_eq!(
+                factorial.factorial(n),
+                (1..=n).map(|k| Mint::new(k)).product()
+            );
+        }
+    }
+
+    #[test]
+    fn test_inverse_factorial() {
+        const UPPER_LIMIT: usize = 1000;
+
+        let factorial: Factorial<Mint> = Factorial::new(UPPER_LIMIT);
+
+        for n in 0..=UPPER_LIMIT {
+            assert_eq!(
+                factorial.inverse_factorial(n),
+                (1..=n).map(|k| Mint::new(k)).product::<Mint>().inv()
+            );
+        }
+    }
+
+    #[test]
+    fn test_permutations() {
+        const UPPER_LIMIT: usize = 100;
+
+        let factorial: Factorial<Mint> = Factorial::new(UPPER_LIMIT);
+
+        for n in 0..=UPPER_LIMIT {
+            for k in 0..=UPPER_LIMIT {
+                let expected = if n >= k {
+                    (n - k + 1..=n).map(|k| Mint::new(k)).product()
+                } else {
+                    Mint::new(0)
+                };
+
+                assert_eq!(factorial.permutations(n, k), expected);
+            }
+        }
+    }
+
+    #[test]
+    fn test_combinations() {
+        const UPPER_LIMIT: usize = 100;
+
+        let factorial: Factorial<Mint> = Factorial::new(UPPER_LIMIT);
+
+        for n in 0..=UPPER_LIMIT {
+            for k in 0..=UPPER_LIMIT {
+                let expected = if n >= k {
+                    (n - k + 1..=n).map(|k| Mint::new(k)).product::<Mint>()
+                        / (1..=k).map(|l| Mint::new(l)).product::<Mint>()
+                } else {
+                    Mint::new(0)
+                };
+
+                assert_eq!(factorial.combinations(n, k), expected);
+            }
+        }
+    }
+
+    #[test]
+    fn test_combinations_with_repetition() {
+        let factorial: Factorial<Mint> = Factorial::new(8);
+
+        assert_eq!(factorial.combinations_with_repetition(0, 0), Mint::new(1));
+        assert_eq!(factorial.combinations_with_repetition(0, 1), Mint::new(0));
+        assert_eq!(factorial.combinations_with_repetition(0, 2), Mint::new(0));
+        assert_eq!(factorial.combinations_with_repetition(0, 3), Mint::new(0));
+
+        assert_eq!(factorial.combinations_with_repetition(1, 0), Mint::new(1));
+        assert_eq!(factorial.combinations_with_repetition(1, 1), Mint::new(1));
+        assert_eq!(factorial.combinations_with_repetition(1, 2), Mint::new(1));
+        assert_eq!(factorial.combinations_with_repetition(1, 3), Mint::new(1));
+
+        assert_eq!(factorial.combinations_with_repetition(2, 0), Mint::new(1));
+        assert_eq!(factorial.combinations_with_repetition(2, 1), Mint::new(2));
+        assert_eq!(factorial.combinations_with_repetition(2, 2), Mint::new(3));
+        assert_eq!(factorial.combinations_with_repetition(2, 3), Mint::new(4));
+
+        assert_eq!(factorial.combinations_with_repetition(3, 0), Mint::new(1));
+        assert_eq!(factorial.combinations_with_repetition(3, 1), Mint::new(3));
+        assert_eq!(factorial.combinations_with_repetition(3, 2), Mint::new(6));
+        assert_eq!(factorial.combinations_with_repetition(3, 3), Mint::new(10));
+
+        assert_eq!(factorial.combinations_with_repetition(4, 5), Mint::new(56));
+
+        assert_eq!(factorial.combinations_with_repetition(5, 4), Mint::new(70));
     }
 }
