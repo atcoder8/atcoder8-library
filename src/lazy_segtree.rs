@@ -146,7 +146,7 @@ where
 
         let p = p + self.size;
 
-        for i in (p.trailing_zeros() + 1..=self.log).rev() {
+        for i in (1..=self.log).rev() {
             self.down_composite(p >> i);
         }
     }
@@ -170,7 +170,13 @@ where
 
     pub fn apply(&mut self, p: usize, f: F) {
         self.composite(p);
-        self.data[p + self.size] = f.mapping(&self.data[p + self.size]);
+
+        let p = p + self.size;
+
+        self.data[p] = f.mapping(&self.data[p]);
+        for i in 1..=self.log {
+            self.up_product(p >> i);
+        }
     }
 
     fn composite_range<R>(&mut self, rng: R)
@@ -278,5 +284,209 @@ where
 
     pub fn apply_all(&mut self, f: F) {
         self.apply_segment(1, &f);
+    }
+
+    pub fn search_right_boundary<G>(&mut self, left: usize, g: G) -> usize
+    where
+        G: Fn(&S) -> bool,
+    {
+        assert!(left <= self.n);
+
+        assert!(
+            g(&S::id()),
+            "The identity element must be mapped to `true` by `g`."
+        );
+
+        if left == self.n {
+            return self.n;
+        }
+
+        let mut left = left + self.size;
+
+        for i in (1..=self.log).rev() {
+            self.down_composite(left >> i);
+        }
+
+        let mut prod = S::id();
+
+        loop {
+            left >>= left.trailing_zeros();
+
+            let cand_prod = prod.product(&self.data[left]);
+
+            if !g(&cand_prod) {
+                break;
+            }
+
+            prod = cand_prod;
+            left += 1;
+
+            if left.is_power_of_two() {
+                return self.n;
+            }
+        }
+
+        while left < self.size {
+            self.down_composite(left);
+
+            left *= 2;
+
+            let cand_prod = prod.product(&self.data[left]);
+            if g(&cand_prod) {
+                prod = cand_prod;
+                left += 1;
+            }
+        }
+
+        left - self.size
+    }
+
+    pub fn search_left_boundary<G>(&mut self, right: usize, g: G) -> usize
+    where
+        G: Fn(&S) -> bool,
+    {
+        assert!(right <= self.n);
+
+        assert!(
+            &g(&S::id()),
+            "The identity element must be mapped to `true` by `g`."
+        );
+
+        let mut right = right + self.size;
+
+        for i in (1..=self.log).rev() {
+            self.down_composite((right - 1) >> i);
+        }
+
+        let mut prod = S::id();
+
+        loop {
+            right >>= right.trailing_zeros();
+
+            let cand_prod = prod.product(&self.data[right - 1]);
+
+            if !g(&cand_prod) {
+                break;
+            }
+
+            prod = cand_prod;
+            right -= 1;
+
+            if right.is_power_of_two() {
+                return 0;
+            }
+        }
+
+        while right < self.size {
+            self.down_composite(right - 1);
+
+            right *= 2;
+
+            let cand_prod = prod.product(&self.data[right - 1]);
+            if g(&cand_prod) {
+                prod = cand_prod;
+                right -= 1;
+            }
+        }
+
+        right - 1 - self.size
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test() {
+        type Val = i64;
+
+        #[derive(Debug, Clone, Copy)]
+        struct S {
+            min: Option<Val>,
+            max: Option<Val>,
+            sum: Val,
+            size: usize,
+        }
+
+        impl Monoid for S {
+            fn id() -> Self {
+                Self {
+                    min: None,
+                    max: None,
+                    sum: 0,
+                    size: 0,
+                }
+            }
+
+            fn product(&self, rhs: &Self) -> Self {
+                let min = if self.min.is_some() && rhs.min.is_some() {
+                    self.min.min(rhs.min)
+                } else {
+                    self.min.or(rhs.min)
+                };
+
+                let max = if self.max.is_some() && rhs.max.is_some() {
+                    self.max.max(rhs.max)
+                } else {
+                    self.max.or(rhs.max)
+                };
+
+                Self {
+                    min,
+                    max,
+                    sum: self.sum + rhs.sum,
+                    size: self.size + rhs.size,
+                }
+            }
+        }
+
+        impl S {
+            fn new(val: Val) -> Self {
+                Self {
+                    min: Some(val),
+                    max: Some(val),
+                    sum: val,
+                    size: 1,
+                }
+            }
+        }
+
+        #[derive(Debug, Clone, Copy)]
+        struct F {
+            add: Val,
+        }
+
+        impl Monoid for F {
+            fn id() -> Self {
+                Self { add: 0 }
+            }
+
+            fn product(&self, rhs: &Self) -> Self {
+                Self {
+                    add: self.add + rhs.add,
+                }
+            }
+        }
+
+        impl Mapping<S> for F {
+            fn mapping(&self, s: &S) -> S {
+                S {
+                    min: s.min.map(|min| min + self.add),
+                    max: s.max.map(|max| max + self.add),
+                    sum: s.sum + s.size as Val + self.add,
+                    size: s.size,
+                }
+            }
+        }
+
+        let seq = vec![-3, -1, -4, -1, 0, 5, 9, 2, 6, 5];
+        let value: Vec<S> = seq.iter().map(|&x| S::new(x)).collect();
+        let lazy_segtree = LazySegtree::<S, F>::from(value);
+
+        assert_eq!(lazy_segtree.product_all().min, seq.iter().min().cloned());
+        assert_eq!(lazy_segtree.product_all().max, seq.iter().max().cloned());
+        assert_eq!(lazy_segtree.product_all().sum, seq.iter().sum());
+        assert_eq!(lazy_segtree.product_all().size, seq.len());
     }
 }
