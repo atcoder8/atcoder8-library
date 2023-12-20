@@ -313,6 +313,14 @@ impl<const MODULUS: InnerType> Modint<MODULUS> {
         Self { rem: a }
     }
 
+    /// Set the remainder of `Modint` instance to `a`.
+    pub fn set_rem<T>(&mut self, a: T)
+    where
+        T: Reminder,
+    {
+        self.rem = a.reminder(MODULUS);
+    }
+
     /// Returns `x` such that `x * q` is equivalent to `p`.
     pub fn frac<T>(p: T, q: T) -> Self
     where
