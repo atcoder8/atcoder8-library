@@ -103,11 +103,11 @@ where
         &self.edges
     }
 
-    fn find_levels(&self, start: usize, goal: usize, reachable: &mut [bool]) -> Vec<Option<usize>> {
+    fn find_levels(&self, start: usize, goal: usize) -> Vec<Option<usize>> {
         let mut levels: Vec<Option<usize>> = vec![None; self.node_num];
         let mut queue = VecDeque::from([(start, 0)]);
         while let Some((cur_node, cand_level)) = queue.pop_front() {
-            if !reachable[cur_node] || levels[cur_node].is_some() {
+            if levels[cur_node].is_some() {
                 continue;
             }
 
@@ -131,86 +131,48 @@ where
             queue.extend(next_bfs_nodes);
         }
 
-        if levels[goal].is_none() {
-            reachable.iter_mut().for_each(|x| *x = false);
-
-            return vec![None; self.node_num];
-        }
-
-        let mut stack = vec![(goal, levels[goal].unwrap())];
-        let mut visited = vec![false; self.node_num];
-        while let Some((cur, level)) = stack.pop() {
-            if visited[cur] {
-                continue;
-            }
-
-            visited[cur] = true;
-
-            if cur == start {
-                continue;
-            }
-
-            let prev_nodes = self.graph[cur]
-                .iter()
-                .map(|&edge_idx| self.edges[edge_idx].to)
-                .chain(
-                    self.inv_graph[cur]
-                        .iter()
-                        .map(|&edge_idx| self.edges[edge_idx].to),
-                )
-                .filter(|&node| levels[node] == Some(level - 1));
-            stack.extend(
-                prev_nodes
-                    .into_iter()
-                    .map(|prev_node| (prev_node, level - 1)),
-            );
-        }
-
         levels
     }
 
-    fn create_flow(
-        &mut self,
-        start: usize,
-        goal: usize,
-        flow_limit: Cap,
-        levels: &[Option<usize>],
-    ) -> Cap {
+    fn create_flow(&mut self, start: usize, goal: usize, flow_limit: Cap) -> Cap {
+        let levels = self.find_levels(start, goal);
+
+        if levels[goal].is_none() {
+            return Cap::zero();
+        }
+
         let select_edge = |cur_node: usize,
                            edge_progresses: &mut [usize],
                            inv_edge_progresses: &mut [usize],
                            edges: &[Edge<Cap>]| {
             let cur_level = levels[cur_node].unwrap();
 
-            let progress = &mut edge_progresses[cur_node];
-            while *progress < self.graph[cur_node].len() {
-                let edge_idx = self.graph[cur_node][*progress];
+            let edge_progress = &mut edge_progresses[cur_node];
+            while *edge_progress < self.graph[cur_node].len() {
+                let edge_idx = self.graph[cur_node][*edge_progress];
                 let edge = edges[edge_idx];
 
                 if levels[edge.to] == Some(cur_level + 1) && !edge.rem_capacity().is_zero() {
                     return Some((edge_idx, false));
                 }
 
-                *progress += 1;
+                *edge_progress += 1;
             }
 
-            let progress = &mut inv_edge_progresses[cur_node];
-            while *progress < self.inv_graph[cur_node].len() {
-                let edge_idx = self.inv_graph[cur_node][*progress];
+            let inv_edge_progress = &mut inv_edge_progresses[cur_node];
+            while *inv_edge_progress < self.inv_graph[cur_node].len() {
+                let edge_idx = self.inv_graph[cur_node][*inv_edge_progress];
                 let edge = edges[edge_idx];
 
                 if levels[edge.from] == Some(cur_level + 1) && !edge.flow.is_zero() {
                     return Some((edge_idx, true));
                 }
 
-                *progress += 1;
+                *inv_edge_progress += 1;
             }
 
             None
         };
-
-        let mut edge_progresses = vec![0; self.node_num];
-        let mut inv_edge_progresses = vec![0; self.node_num];
 
         let push_dfs_node = |cur_node: usize,
                              edge_progresses: &mut [usize],
@@ -254,6 +216,9 @@ where
             flow_limit: Cap,
             flow: Cap,
         }
+
+        let mut edge_progresses = vec![0; self.node_num];
+        let mut inv_edge_progresses = vec![0; self.node_num];
 
         let mut stack = vec![DFSNode::Forward {
             cur_node: start,
@@ -347,16 +312,9 @@ where
         );
 
         let mut max_flow = Cap::zero();
-        let mut reachable = vec![true; self.node_num];
 
         while max_flow < flow_limit {
-            let levels = self.find_levels(start, goal, &mut reachable);
-
-            if levels[goal].is_none() {
-                break;
-            }
-
-            let flow = self.create_flow(start, goal, flow_limit - max_flow, &levels);
+            let flow = self.create_flow(start, goal, flow_limit - max_flow);
 
             if flow.is_zero() {
                 break;
