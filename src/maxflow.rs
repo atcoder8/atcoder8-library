@@ -162,9 +162,7 @@ where
     fn create_flow(&mut self, source: usize, sink: usize, flow_limit: Cap) -> Cap {
         let levels = self.find_levels(source, sink);
 
-        if levels[sink].is_none() {
-            return Cap::zero();
-        }
+        let Some(sink_level) = levels[sink] else { return Cap::zero() };
 
         let select_edge = |cur_node: usize,
                            edge_progresses: &mut [usize],
@@ -249,7 +247,11 @@ where
             cur_node: source,
             rem_capacity: flow_limit,
         }];
+        stack.reserve(2 * sink_level);
+
         let mut flow_state_stack: Vec<FlowState<Cap>> = vec![];
+        flow_state_stack.reserve(sink_level);
+
         while let Some(dfs_node) = stack.pop() {
             match dfs_node {
                 DFSNode::Forward {
