@@ -159,7 +159,7 @@ where
     }
 
     /// Increases the flow from `source` to `sink` by the maximum flow `flow_limit` and returns the increased flow amount.
-    fn create_flow(&mut self, source: usize, sink: usize, flow_limit: Cap) -> Cap {
+    fn increase_flow(&mut self, source: usize, sink: usize, flow_limit: Cap) -> Cap {
         let levels = self.find_levels(source, sink);
 
         let Some(sink_level) = levels[sink] else { return Cap::zero() };
@@ -344,7 +344,7 @@ where
         let mut max_flow = Cap::zero();
 
         while max_flow < flow_limit {
-            let flow = self.create_flow(source, sink, flow_limit - max_flow);
+            let flow = self.increase_flow(source, sink, flow_limit - max_flow);
 
             if flow.is_zero() {
                 break;
