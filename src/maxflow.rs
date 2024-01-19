@@ -26,14 +26,14 @@ pub trait Capacity:
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct Edge<Cap> {
+pub struct FlowEdge<Cap> {
     pub from: usize,
     pub to: usize,
     pub capacity: Cap,
     pub flow: Cap,
 }
 
-impl<Cap> Edge<Cap>
+impl<Cap> FlowEdge<Cap>
 where
     Cap: Capacity,
 {
@@ -54,7 +54,7 @@ where
 #[derive(Debug, Clone)]
 pub struct MfGraph<Cap> {
     node_num: usize,
-    edges: Vec<Edge<Cap>>,
+    edges: Vec<FlowEdge<Cap>>,
     graph: Vec<Vec<usize>>,
     inv_graph: Vec<Vec<usize>>,
 }
@@ -82,13 +82,13 @@ where
 
         let edge_idx = self.edges.len();
 
-        self.edges.push(Edge::new(from, to, capacity));
+        self.edges.push(FlowEdge::new(from, to, capacity));
 
         self.graph[from].push(edge_idx);
         self.inv_graph[to].push(edge_idx);
     }
 
-    pub fn get_edge(&self, edge_idx: usize) -> Edge<Cap> {
+    pub fn get_edge(&self, edge_idx: usize) -> FlowEdge<Cap> {
         assert!(
             edge_idx < self.edges.len(),
             "The number of edges is {}, but {} was specified.",
@@ -99,7 +99,7 @@ where
         self.edges[edge_idx]
     }
 
-    pub fn get_edges(&self) -> &Vec<Edge<Cap>> {
+    pub fn get_edges(&self) -> &Vec<FlowEdge<Cap>> {
         &self.edges
     }
 
@@ -144,7 +144,7 @@ where
         let select_edge = |cur_node: usize,
                            edge_progresses: &mut [usize],
                            inv_edge_progresses: &mut [usize],
-                           edges: &[Edge<Cap>]| {
+                           edges: &[FlowEdge<Cap>]| {
             let cur_level = levels[cur_node].unwrap();
 
             let edge_progress = &mut edge_progresses[cur_node];
@@ -177,7 +177,7 @@ where
         let push_dfs_node = |cur_node: usize,
                              edge_progresses: &mut [usize],
                              inv_edge_progresses: &mut [usize],
-                             edges: &[Edge<Cap>],
+                             edges: &[FlowEdge<Cap>],
                              stack: &mut Vec<DFSNode<Cap>>| {
             let Some((edge_idx, inverse)) = select_edge(cur_node, edge_progresses, inv_edge_progresses, edges) else { return; };
             let edge = edges[edge_idx];
