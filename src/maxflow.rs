@@ -27,9 +27,16 @@ pub trait Capacity:
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct FlowEdge<Cap> {
+    /// Node that is the source of the flow.
     pub from: usize,
+
+    /// Node that is the destination of the flow.
     pub to: usize,
+
+    /// Upper limit of flow through this edge.
     pub capacity: Cap,
+
+    /// Current flow for this edge.
     pub flow: Cap,
 }
 
@@ -37,6 +44,8 @@ impl<Cap> FlowEdge<Cap>
 where
     Cap: Capacity,
 {
+    /// Create an edge by specifying endpoints and flow limit.
+    /// Initial flow amount is zero.
     pub fn new(from: usize, to: usize, capacity: Cap) -> Self {
         Self {
             from,
@@ -46,6 +55,7 @@ where
         }
     }
 
+    /// Returns the difference between the upper flow limit and the current flow amount.
     pub fn rem_capacity(&self) -> Cap {
         self.capacity - self.flow
     }
@@ -53,9 +63,16 @@ where
 
 #[derive(Debug, Clone)]
 pub struct MfGraph<Cap> {
+    /// Number of graph edges.
     node_num: usize,
+
+    /// List of edges of this graph.
     edges: Vec<FlowEdge<Cap>>,
+
+    /// For each node, a list containing a list of indices of edges with that node as head.
     graph: Vec<Vec<usize>>,
+
+    /// For each node, a list containing a list of indices of edges with that node as tail.
     inv_graph: Vec<Vec<usize>>,
 }
 
@@ -63,6 +80,7 @@ impl<Cap> MfGraph<Cap>
 where
     Cap: Capacity,
 {
+    /// Creates an empty directed graph with `node_num` nodes.
     pub fn new(node_num: usize) -> Self {
         Self {
             node_num,
@@ -72,6 +90,7 @@ where
         }
     }
 
+    /// Add an edge from the node `from` to the node `to` with flow limit `capacity`.
     pub fn add_edge(&mut self, from: usize, to: usize, capacity: Cap) {
         assert!(
             from < self.node_num && to < self.node_num,
@@ -88,6 +107,7 @@ where
         self.inv_graph[to].push(edge_idx);
     }
 
+    /// Returns the state of the `edge_idx` th (0-based) edge.
     pub fn get_edge(&self, edge_idx: usize) -> FlowEdge<Cap> {
         assert!(
             edge_idx < self.edges.len(),
@@ -99,10 +119,14 @@ where
         self.edges[edge_idx]
     }
 
+    /// Returns a list of edge states added to the graph.
     pub fn get_edges(&self) -> &Vec<FlowEdge<Cap>> {
         &self.edges
     }
 
+    /// Creates a list of `level` for each node,
+    /// where `level` is the distance from `start` using edges or inverses
+    /// where the current flow amount is less than the upper limit.
     fn find_levels(&self, start: usize, goal: usize) -> Vec<Option<usize>> {
         let mut levels: Vec<Option<usize>> = vec![None; self.node_num];
         let mut queue = VecDeque::from([(start, 0)]);
@@ -134,6 +158,7 @@ where
         levels
     }
 
+    /// Increases the flow from `start` to `goal` by the maximum flow `flow_limit` and returns the increased flow amount.
     fn create_flow(&mut self, start: usize, goal: usize, flow_limit: Cap) -> Cap {
         let levels = self.find_levels(start, goal);
 
@@ -301,10 +326,13 @@ where
         flow_state_stack[0].flow
     }
 
+    /// Flows from `start` to `goal` as much as possible, and returns the flowed amount.
+    /// The flow limit is set to the maximum of the values represented by the capacity type.
     pub fn flow(&mut self, start: usize, goal: usize) -> Cap {
         self.flow_with_capacity(start, goal, Cap::max_value())
     }
 
+    /// Flows from `start` to `goal` as much as possible, with the maximum flow as `flow_limit`, and returns the flowed amount.
     pub fn flow_with_capacity(&mut self, start: usize, goal: usize, flow_limit: Cap) -> Cap {
         assert!(
             start < self.node_num && goal < self.node_num,
@@ -326,6 +354,8 @@ where
         max_flow
     }
 
+    /// Finds for each node if it is reachable from `start` using the edge or the inverse edge,
+    /// where the current flow is less than the upper limit.
     pub fn min_cut(&self, start: usize) -> Vec<bool> {
         let mut visited = vec![false; self.node_num];
 
