@@ -125,11 +125,11 @@ where
     }
 
     /// Creates a list of `level` for each node,
-    /// where `level` is the distance from `start` using edges or inverses
+    /// where `level` is the distance from `source` using edges or inverses
     /// where the current flow amount is less than the upper limit.
-    fn find_levels(&self, start: usize, goal: usize) -> Vec<Option<usize>> {
+    fn find_levels(&self, source: usize, sink: usize) -> Vec<Option<usize>> {
         let mut levels: Vec<Option<usize>> = vec![None; self.node_num];
-        let mut queue = VecDeque::from([(start, 0)]);
+        let mut queue = VecDeque::from([(source, 0)]);
         while let Some((cur_node, cand_level)) = queue.pop_front() {
             if levels[cur_node].is_some() {
                 continue;
@@ -137,7 +137,7 @@ where
 
             levels[cur_node] = Some(cand_level);
 
-            if cur_node == goal {
+            if cur_node == sink {
                 continue;
             }
 
@@ -158,11 +158,11 @@ where
         levels
     }
 
-    /// Increases the flow from `start` to `goal` by the maximum flow `flow_limit` and returns the increased flow amount.
-    fn create_flow(&mut self, start: usize, goal: usize, flow_limit: Cap) -> Cap {
-        let levels = self.find_levels(start, goal);
+    /// Increases the flow from `source` to `sink` by the maximum flow `flow_limit` and returns the increased flow amount.
+    fn create_flow(&mut self, source: usize, sink: usize, flow_limit: Cap) -> Cap {
+        let levels = self.find_levels(source, sink);
 
-        if levels[goal].is_none() {
+        if levels[sink].is_none() {
             return Cap::zero();
         }
 
@@ -246,7 +246,7 @@ where
         let mut inv_edge_progresses = vec![0; self.node_num];
 
         let mut stack = vec![DFSNode::Forward {
-            cur_node: start,
+            cur_node: source,
             rem_capacity: flow_limit,
         }];
         let mut flow_state_stack: Vec<FlowState<Cap>> = vec![];
@@ -262,7 +262,7 @@ where
                     }
                     .min(rem_capacity);
 
-                    if cur_node == goal {
+                    if cur_node == sink {
                         flow_state_stack.push(FlowState {
                             flow_limit: cur_flow_limit,
                             flow: cur_flow_limit,
@@ -326,23 +326,23 @@ where
         flow_state_stack[0].flow
     }
 
-    /// Flows from `start` to `goal` as much as possible, and returns the flowed amount.
+    /// Flows from `source` to `sink` as much as possible, and returns the flowed amount.
     /// The flow limit is set to the maximum of the values represented by the capacity type.
-    pub fn flow(&mut self, start: usize, goal: usize) -> Cap {
-        self.flow_with_capacity(start, goal, Cap::max_value())
+    pub fn flow(&mut self, source: usize, sink: usize) -> Cap {
+        self.flow_with_capacity(source, sink, Cap::max_value())
     }
 
-    /// Flows from `start` to `goal` as much as possible, with the maximum flow as `flow_limit`, and returns the flowed amount.
-    pub fn flow_with_capacity(&mut self, start: usize, goal: usize, flow_limit: Cap) -> Cap {
+    /// Flows from `source` to `sink` as much as possible, with the maximum flow as `flow_limit`, and returns the flowed amount.
+    pub fn flow_with_capacity(&mut self, source: usize, sink: usize, flow_limit: Cap) -> Cap {
         assert!(
-            start < self.node_num && goal < self.node_num,
-            "`start` and `goal` must be smaller than number of nodes."
+            source < self.node_num && sink < self.node_num,
+            "`source` and `sink` must be smaller than number of nodes."
         );
 
         let mut max_flow = Cap::zero();
 
         while max_flow < flow_limit {
-            let flow = self.create_flow(start, goal, flow_limit - max_flow);
+            let flow = self.create_flow(source, sink, flow_limit - max_flow);
 
             if flow.is_zero() {
                 break;
@@ -354,12 +354,12 @@ where
         max_flow
     }
 
-    /// Finds for each node if it is reachable from `start` using the edge or the inverse edge,
+    /// Finds for each node if it is reachable from `source` using the edge or the inverse edge,
     /// where the current flow is less than the upper limit.
-    pub fn min_cut(&self, start: usize) -> Vec<bool> {
+    pub fn min_cut(&self, source: usize) -> Vec<bool> {
         let mut visited = vec![false; self.node_num];
 
-        let mut queue = VecDeque::from([start]);
+        let mut queue = VecDeque::from([source]);
         while let Some(cur_node) = queue.pop_front() {
             if visited[cur_node] {
                 continue;
