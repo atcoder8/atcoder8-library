@@ -168,7 +168,7 @@ where
         }
     }
 
-    pub fn apply(&mut self, p: usize, f: F) {
+    pub fn apply(&mut self, p: usize, f: &F) {
         self.composite(p);
 
         let p = p + self.size;
@@ -242,7 +242,7 @@ where
         }
     }
 
-    pub fn apply_range<R>(&mut self, rng: R, f: F)
+    pub fn apply_range<R>(&mut self, rng: R, f: &F)
     where
         R: RangeBounds<usize>,
     {
@@ -282,7 +282,7 @@ where
         }
     }
 
-    pub fn apply_all(&mut self, f: F) {
+    pub fn apply_all(&mut self, f: &F) {
         self.apply_segment(1, &f);
     }
 
