@@ -15,7 +15,7 @@ mod random_test {
         for test_case_index in 0..NUMBER_OF_TESTS {
             let input = generator();
             let expected_output = expected(input.clone());
-            let actual_output = solve(input.clone());
+            let actual_output = actual(input.clone());
 
             assert_eq!(
                 expected_output, actual_output,
@@ -50,8 +50,8 @@ Wrong Answer on Test #{}
         todo!()
     }
 
-    /// Test this program.
-    pub fn solve(input: Input) -> Output {
+    /// Solution to be tested.
+    pub fn actual(input: Input) -> Output {
         let () = input;
 
         todo!()
