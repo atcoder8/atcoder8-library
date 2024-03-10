@@ -259,13 +259,13 @@ where
 
             while left < right {
                 if left & 1 == 1 {
-                    self.apply_segment(left, &f);
+                    self.apply_segment(left, f);
                     left += 1;
                 }
 
                 if right & 1 == 1 {
                     right -= 1;
-                    self.apply_segment(right, &f);
+                    self.apply_segment(right, f);
                 }
 
                 left >>= 1;
@@ -283,7 +283,7 @@ where
     }
 
     pub fn apply_all(&mut self, f: &F) {
-        self.apply_segment(1, &f);
+        self.apply_segment(1, f);
     }
 
     pub fn search_right_boundary<G>(&mut self, left: usize, g: G) -> usize
