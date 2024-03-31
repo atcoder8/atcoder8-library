@@ -8,38 +8,27 @@ use std::ops::RangeBounds;
 /// Defines the method signature of the monoid.
 pub trait Monoid: Clone {
     /// The identity element
-    fn e() -> Self;
+    fn id() -> Self;
 
     /// The binary operation
-    fn op(a: Self, b: Self) -> Self;
+    fn prod(&self, rhs: &Self) -> Self;
 }
-
-// /// Definition of monoid
-// impl Monoid for i32 {
-//     fn e() -> Self {
-//         -1
-//     }
-
-//     fn op(a: Self, b: Self) -> Self {
-//         a.max(b)
-//     }
-// }
 
 /// # Examples
 ///
 /// ```
-/// use atcoder8_library::segment_tree::{Monoid, SegmentTree};
-///
+/// # use atcoder8_library::segment_tree::{Monoid, SegmentTree};
+/// #
 /// #[derive(Debug, Clone, PartialEq)]
 /// struct Data(i32);
 ///
 /// impl Monoid for Data {
-///     fn e() -> Self {
+///     fn id() -> Self {
 ///         Data(0)
 ///     }
 ///
-///     fn op(a: Self, b: Self) -> Self {
-///         Data(a.0.max(b.0))
+///     fn prod(&self, rhs: &Self) -> Self {
+///         Data(self.0.max(rhs.0))
 ///     }
 /// }
 ///
@@ -80,18 +69,18 @@ impl<M: Monoid> SegmentTree<M> {
     /// # Examples
     ///
     /// ```
-    /// use atcoder8_library::segment_tree::{Monoid, SegmentTree};
-    ///
+    /// # use atcoder8_library::segment_tree::{Monoid, SegmentTree};
+    /// #
     /// #[derive(Debug, Clone, PartialEq)]
     /// struct Data(i32);
     ///
     /// impl Monoid for Data {
-    ///     fn e() -> Self {
+    ///     fn id() -> Self {
     ///         Data(0)
     ///     }
     ///
-    ///     fn op(a: Self, b: Self) -> Self {
-    ///         Data(a.0.max(b.0))
+    ///     fn prod(&self, rhs: &Self) -> Self {
+    ///         Data(self.0.max(rhs.0))
     ///     }
     /// }
     ///
@@ -107,7 +96,7 @@ impl<M: Monoid> SegmentTree<M> {
 
         Self {
             n,
-            data: vec![M::e(); data_len],
+            data: vec![M::id(); data_len],
         }
     }
 
@@ -121,18 +110,18 @@ impl<M: Monoid> SegmentTree<M> {
     /// # Examples
     ///
     /// ```
-    /// use atcoder8_library::segment_tree::{Monoid, SegmentTree};
-    ///
+    /// # use atcoder8_library::segment_tree::{Monoid, SegmentTree};
+    /// #
     /// #[derive(Debug, Clone, PartialEq)]
     /// struct Data(i32);
     ///
     /// impl Monoid for Data {
-    ///     fn e() -> Self {
+    ///     fn id() -> Self {
     ///         Data(0)
     ///     }
     ///
-    ///     fn op(a: Self, b: Self) -> Self {
-    ///         Data(a.0.max(b.0))
+    ///     fn prod(&self, rhs: &Self) -> Self {
+    ///         Data(self.0.max(rhs.0))
     ///     }
     /// }
     ///
@@ -156,7 +145,7 @@ impl<M: Monoid> SegmentTree<M> {
         self.data[p] = x;
         while p != 1 {
             p >>= 1;
-            self.data[p] = M::op(self.data[2 * p].clone(), self.data[2 * p + 1].clone());
+            self.data[p] = self.data[2 * p].prod(&self.data[2 * p + 1]);
         }
     }
 
@@ -169,18 +158,18 @@ impl<M: Monoid> SegmentTree<M> {
     /// # Examples
     ///
     /// ```
-    /// use atcoder8_library::segment_tree::{Monoid, SegmentTree};
-    ///
+    /// # use atcoder8_library::segment_tree::{Monoid, SegmentTree};
+    /// #
     /// #[derive(Debug, Clone, PartialEq)]
     /// struct Data(i32);
     ///
     /// impl Monoid for Data {
-    ///     fn e() -> Self {
+    ///     fn id() -> Self {
     ///         Data(0)
     ///     }
     ///
-    ///     fn op(a: Self, b: Self) -> Self {
-    ///         Data(a.0.max(b.0))
+    ///     fn prod(&self, rhs: &Self) -> Self {
+    ///         Data(self.0.max(rhs.0))
     ///     }
     /// }
     ///
@@ -208,18 +197,18 @@ impl<M: Monoid> SegmentTree<M> {
     /// # Examples
     ///
     /// ```
-    /// use atcoder8_library::segment_tree::{Monoid, SegmentTree};
-    ///
+    /// # use atcoder8_library::segment_tree::{Monoid, SegmentTree};
+    /// #
     /// #[derive(Debug, Clone, PartialEq)]
     /// struct Data(i32);
     ///
     /// impl Monoid for Data {
-    ///     fn e() -> Self {
+    ///     fn id() -> Self {
     ///         Data(0)
     ///     }
     ///
-    ///     fn op(a: Self, b: Self) -> Self {
-    ///         Data(a.0.max(b.0))
+    ///     fn prod(&self, rhs: &Self) -> Self {
+    ///         Data(self.0.max(rhs.0))
     ///     }
     /// }
     ///
@@ -257,28 +246,28 @@ impl<M: Monoid> SegmentTree<M> {
             self.n,
         );
 
-        let mut sml = M::e();
-        let mut smr = M::e();
+        let mut sml = M::id();
+        let mut smr = M::id();
 
         let mut l = l + self.data.len() / 2;
         let mut r = r + self.data.len() / 2;
 
         while l < r {
             if l & 1 != 0 {
-                sml = M::op(sml, self.data[l].clone());
+                sml = sml.prod(&self.data[l]);
                 l += 1;
             }
 
             if r & 1 != 0 {
                 r -= 1;
-                smr = M::op(self.data[r].clone(), smr);
+                smr = self.data[r].prod(&smr);
             }
 
             l >>= 1;
             r >>= 1;
         }
 
-        M::op(sml, smr)
+        sml.prod(&smr)
     }
 
     /// Returns the product of all elements of a sequence.
@@ -286,18 +275,18 @@ impl<M: Monoid> SegmentTree<M> {
     /// # Examples
     ///
     /// ```
-    /// use atcoder8_library::segment_tree::{Monoid, SegmentTree};
-    ///
+    /// # use atcoder8_library::segment_tree::{Monoid, SegmentTree};
+    /// #
     /// #[derive(Debug, Clone, PartialEq)]
     /// struct Data(i32);
     ///
     /// impl Monoid for Data {
-    ///     fn e() -> Self {
+    ///     fn id() -> Self {
     ///         Data(0)
     ///     }
     ///
-    ///     fn op(a: Self, b: Self) -> Self {
-    ///         Data(a.0.max(b.0))
+    ///     fn prod(&self, rhs: &Self) -> Self {
+    ///         Data(self.0.max(rhs.0))
     ///     }
     /// }
     ///
@@ -332,18 +321,18 @@ impl<M: Monoid> SegmentTree<M> {
     /// # Examples
     ///
     /// ```
-    /// use atcoder8_library::segment_tree::{Monoid, SegmentTree};
-    ///
+    /// # use atcoder8_library::segment_tree::{Monoid, SegmentTree};
+    /// #
     /// #[derive(Debug, Clone, PartialEq)]
     /// struct Data(usize);
     ///
     /// impl Monoid for Data {
-    ///     fn e() -> Self {
+    ///     fn id() -> Self {
     ///         Data(0)
     ///     }
     ///
-    ///     fn op(a: Self, b: Self) -> Self {
-    ///         Data(a.0.max(b.0))
+    ///     fn prod(&self, rhs: &Self) -> Self {
+    ///         Data(self.0.max(rhs.0))
     ///     }
     /// }
     ///
@@ -359,7 +348,7 @@ impl<M: Monoid> SegmentTree<M> {
         F: Fn(&M) -> bool,
     {
         assert!(
-            f(&M::e()),
+            f(&M::id()),
             "The identity element must be mapped to true by `f`."
         );
 
@@ -377,17 +366,17 @@ impl<M: Monoid> SegmentTree<M> {
         let size = self.data.len() / 2;
 
         let mut l = l + size;
-        let mut sm = M::e();
+        let mut sm = M::id();
 
         loop {
             while l % 2 == 0 {
                 l >>= 1;
             }
 
-            if !f(&M::op(sm.clone(), self.data[l].clone())) {
+            if !f(&sm.prod(&self.data[l])) {
                 while l < size {
                     l *= 2;
-                    let res = M::op(sm.clone(), self.data[l].clone());
+                    let res = sm.prod(&self.data[l]);
                     if f(&res) {
                         sm = res;
                         l += 1;
@@ -397,7 +386,7 @@ impl<M: Monoid> SegmentTree<M> {
                 return l - size;
             }
 
-            sm = M::op(sm, self.data[l].clone());
+            sm = sm.prod(&self.data[l]);
             l += 1;
 
             if l & l.wrapping_neg() == l {
@@ -430,18 +419,18 @@ impl<M: Monoid> SegmentTree<M> {
     /// # Examples
     ///
     /// ```
-    /// use atcoder8_library::segment_tree::{Monoid, SegmentTree};
-    ///
+    /// # use atcoder8_library::segment_tree::{Monoid, SegmentTree};
+    /// #
     /// #[derive(Debug, Clone, PartialEq)]
     /// struct Data(usize);
     ///
     /// impl Monoid for Data {
-    ///     fn e() -> Self {
+    ///     fn id() -> Self {
     ///         Data(0)
     ///     }
     ///
-    ///     fn op(a: Self, b: Self) -> Self {
-    ///         Data(a.0.max(b.0))
+    ///     fn prod(&self, rhs: &Self) -> Self {
+    ///         Data(self.0.max(rhs.0))
     ///     }
     /// }
     ///
@@ -457,7 +446,7 @@ impl<M: Monoid> SegmentTree<M> {
         F: Fn(&M) -> bool,
     {
         assert!(
-            f(&M::e()),
+            f(&M::id()),
             "The identity element must be mapped to true by `f`."
         );
 
@@ -475,7 +464,7 @@ impl<M: Monoid> SegmentTree<M> {
         let size = self.data.len() / 2;
 
         let mut r = r + size;
-        let mut sm = M::e();
+        let mut sm = M::id();
 
         loop {
             r -= 1;
@@ -483,10 +472,10 @@ impl<M: Monoid> SegmentTree<M> {
                 r >>= 1;
             }
 
-            if !f(&M::op(self.data[r].clone(), sm.clone())) {
+            if !f(&self.data[r].prod(&sm)) {
                 while r < size {
                     r = 2 * r + 1;
-                    let res = M::op(self.data[r].clone(), sm.clone());
+                    let res = self.data[r].prod(&sm);
                     if f(&res) {
                         sm = res;
                         r -= 1;
@@ -496,7 +485,7 @@ impl<M: Monoid> SegmentTree<M> {
                 return r + 1 - size;
             }
 
-            sm = M::op(self.data[r].clone(), sm);
+            sm = self.data[r].prod(&sm);
 
             if r & r.wrapping_neg() == r {
                 break;
