@@ -1,6 +1,8 @@
 /// Module for testing
 #[cfg(test)]
 mod random_test {
+    use rand::rngs::ThreadRng;
+
     /// Input data type.
     type Input = ();
 
@@ -12,8 +14,10 @@ mod random_test {
     fn test() {
         const NUMBER_OF_TESTS: usize = 1000;
 
+        let mut rng = rand::thread_rng();
+
         for test_case_index in 0..NUMBER_OF_TESTS {
-            let input = generator();
+            let input = generator(&mut rng);
             let expected_output = expected(input.clone());
             let actual_output = actual(input.clone());
 
@@ -37,9 +41,7 @@ Wrong Answer on Test #{}
     }
 
     /// Generate test cases.
-    pub fn generator() -> Input {
-        // let mut rng = rand::thread_rng();
-
+    pub fn generator(_rng: &mut ThreadRng) -> Input {
         todo!()
     }
 
