@@ -1,4 +1,4 @@
-/// Module for testing
+/// Module for random testing.
 #[cfg(test)]
 mod random_test {
     use rand::rngs::ThreadRng;
@@ -9,9 +9,10 @@ mod random_test {
     /// Output data type.
     type Output = ();
 
-    /// Perform the specified number of tests.
+    /// Performs the specified number of tests.
     #[test]
     fn test() {
+        /// This value specifies the number of tests.
         const NUMBER_OF_TESTS: usize = 1000;
 
         let mut rng = rand::thread_rng();
@@ -21,10 +22,11 @@ mod random_test {
             let expected_output = expected(input.clone());
             let actual_output = actual(input.clone());
 
+            // If an unexpected answer is returned, panic is triggered.
             assert_eq!(
                 expected_output, actual_output,
                 "
-Wrong Answer on Test #{}
+Unexpected answer was returned in test case #{}.
 
 [Input]
 {:?}
@@ -40,12 +42,12 @@ Wrong Answer on Test #{}
         }
     }
 
-    /// Generate test cases.
+    /// Generates a test case.
     pub fn generator(_rng: &mut ThreadRng) -> Input {
         todo!()
     }
 
-    /// Return the expected answer.
+    /// Returns the expected answer.
     pub fn expected(input: Input) -> Output {
         let () = input;
 
