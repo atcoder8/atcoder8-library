@@ -268,6 +268,46 @@ where
     }
 }
 
+macro_rules! impl_ops_for_integer {
+    ($($integer:ty), *) => {
+        $(
+            impl<const MODULUS: InnerType> Add<Modint<MODULUS>> for $integer {
+                type Output = Modint<MODULUS>;
+
+                fn add(self, rhs: Modint<MODULUS>) -> Self::Output {
+                    Modint::new(self) + rhs
+                }
+            }
+
+            impl<const MODULUS: InnerType> Sub<Modint<MODULUS>> for $integer {
+                type Output = Modint<MODULUS>;
+
+                fn sub(self, rhs: Modint<MODULUS>) -> Self::Output {
+                    Modint::new(self) - rhs
+                }
+            }
+
+            impl<const MODULUS: InnerType> Mul<Modint<MODULUS>> for $integer {
+                type Output = Modint<MODULUS>;
+
+                fn mul(self, rhs: Modint<MODULUS>) -> Self::Output {
+                    Modint::new(self) * rhs
+                }
+            }
+
+            impl<const MODULUS: InnerType> Div<Modint<MODULUS>> for $integer {
+                type Output = Modint<MODULUS>;
+
+                fn div(self, rhs: Modint<MODULUS>) -> Self::Output {
+                    Modint::new(self) / rhs
+                }
+            }
+        )*
+    };
+}
+
+impl_ops_for_integer!(u8, u16, u32, u64, u128, usize, i8, i16, i32, i64, i128, isize);
+
 impl<const MODULUS: InnerType> Sum<Modint<MODULUS>> for Modint<MODULUS> {
     fn sum<I: Iterator<Item = Modint<MODULUS>>>(iter: I) -> Self {
         iter.fold(Self::new(0), |acc, x| acc + x)
