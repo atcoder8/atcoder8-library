@@ -31,3 +31,6 @@ pub mod math;
 pub mod simple_dijkstra;
 pub mod consecutive_sections;
 pub mod maxflow;
+pub mod rolling_hash;
+pub mod rolling_hash_2;
+pub mod lexical_permutation;
