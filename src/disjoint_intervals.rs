@@ -11,6 +11,20 @@ pub struct DisjointIntervals<T> {
     len: usize,
 }
 
+impl<I> From<I> for DisjointIntervals<usize>
+where
+    I: IntoIterator<Item = usize>,
+{
+    fn from(iterable: I) -> Self {
+        let mut set = DisjointIntervals::new();
+        for value in iterable {
+            set.insert(value);
+        }
+
+        set
+    }
+}
+
 impl DisjointIntervals<usize> {
     /// Creates a new empty set.
     pub fn new() -> Self {
@@ -25,17 +39,22 @@ impl DisjointIntervals<usize> {
         self.len
     }
 
-    /// Returns `true` if and only if the set is empty.
+    /// Returns `true` if the set is empty.
     pub fn is_empty(&self) -> bool {
         self.intervals.is_empty()
     }
 
-    /// Returns `true` if and only if `value` is in the set.
+    /// If the set contains `value`, returns the interval to which `value` belongs.
+    pub fn belong_interval(&self, value: usize) -> Option<ops::Range<usize>> {
+        match self.intervals.range(..=value).next_back() {
+            Some((&left, &right)) if value < right => Some(left..right),
+            _ => None,
+        }
+    }
+
+    /// Returns `true` if the set contains `value`.
     pub fn contains(&self, value: usize) -> bool {
-        self.intervals
-            .range(..=value)
-            .next_back()
-            .is_some_and(|(_, &right)| right > value)
+        self.belong_interval(value).is_some()
     }
 
     /// Returns the number of non-contiguous intervals.
@@ -43,46 +62,77 @@ impl DisjointIntervals<usize> {
         self.intervals.len()
     }
 
-    /// Adds the elements contained in the `range`.
-    /// Returns the number of newly added elements.
+    /// Inserts the elements contained in the `range`.
+    /// Returns the number of newly inserted elements.
     pub fn insert_range(&mut self, range: ops::Range<usize>) -> usize {
         if range.is_empty() {
             return 0;
         }
 
+        let before_len = self.len;
+
         // Finds both ends of the updated intervals such that they contain `range`.
-        let insert_left = match self.intervals.range(..=range.start).next_back() {
-            Some((&left, &right)) if right >= range.start => left,
-            _ => range.start,
+        let insert_left = match self.belong_interval(range.start.saturating_sub(1)) {
+            Some(left_interval) => left_interval.start,
+            None => range.start,
         };
-        let insert_right = match self.intervals.range(..=range.end).next_back() {
-            Some((_, &right)) => right.max(range.end),
+        let insert_right = match self.belong_interval(range.end) {
+            Some(right_interval) => right_interval.end,
             None => range.end,
         };
 
-        // Update the set of intervals and counts the number of newly inserted elements.
-        let mut add_element_num = insert_right - insert_left;
+        // Update the combination of intervals and the number of elements.
         loop {
             match self.intervals.range(insert_left..).next() {
                 Some((&left, &right)) if right <= insert_right => {
                     self.intervals.remove(&left);
-                    add_element_num -= right - left;
+                    self.len -= right - left;
                 }
                 _ => break,
             }
         }
         self.intervals.insert(insert_left, insert_right);
+        self.len += insert_right - insert_left;
 
-        // Update number of elements in the set.
-        self.len += add_element_num;
-
-        add_element_num
+        // Return the number of elements inserted.
+        self.len - before_len
     }
 
-    /// Adds an element.
-    /// Returns `true` if and only if the element is newly added.
+    /// Inserts an element.
+    /// Returns `true` if the element is newly inserted.
     pub fn insert(&mut self, value: usize) -> bool {
         self.insert_range(value..value + 1) == 1
+    }
+
+    /// Removes elements in `range` from the set.
+    /// Returns the number of removed elements.
+    pub fn remove_range(&mut self, range: ops::Range<usize>) -> usize {
+        if range.is_empty() {
+            return 0;
+        }
+
+        let before_len = self.len;
+
+        // Temporarily insert an element in the `range` to make an interval that completely contains the `range`.
+        self.insert_range(range.clone());
+        let belong_interval = self.belong_interval(range.start).unwrap();
+
+        // Remove elements in the interval that completely contains `range`.
+        self.intervals.remove(&belong_interval.start);
+        self.len -= belong_interval.len();
+
+        // Insert the removed elements which are not included in `range`.
+        self.insert_range(belong_interval.start..range.start);
+        self.insert_range(range.end..belong_interval.end);
+
+        // Returns the number of elements removed.
+        before_len - self.len
+    }
+
+    /// Removes an element from the set.
+    /// Returns `true` if the element is newly removed.
+    pub fn remove(&mut self, value: usize) -> bool {
+        self.remove_range(value..value + 1) == 1
     }
 
     /// Returns the smallest non-negative integer not included in the set.
@@ -93,7 +143,7 @@ impl DisjointIntervals<usize> {
         }
     }
 
-    /// Generates an iterator that traverses the elements contained in the set.
+    /// Creates an iterator that traverses the elements contained in the set.
     pub fn range_inclusively(&self, range: ops::Range<usize>) -> RangeInclusively<usize> {
         RangeInclusively {
             intervals: self,
@@ -101,7 +151,7 @@ impl DisjointIntervals<usize> {
         }
     }
 
-    /// Generates an iterator that traverses the elements not contained in the set.
+    /// Creates an iterator that traverses the elements not contained in the set.
     pub fn range_exclusively(&self, range: ops::Range<usize>) -> RangeExclusively<usize> {
         RangeExclusively {
             intervals: self,
@@ -110,6 +160,7 @@ impl DisjointIntervals<usize> {
     }
 }
 
+/// Iterator that traverses elements in the range that are included in the set.
 #[derive(Debug)]
 pub struct RangeInclusively<'a, T> {
     intervals: &'a DisjointIntervals<T>,
@@ -162,6 +213,7 @@ impl<'a> DoubleEndedIterator for RangeInclusively<'a, usize> {
     }
 }
 
+/// Iterator that traverses elements in the range that are **not** included in the set.
 #[derive(Debug)]
 pub struct RangeExclusively<'a, T> {
     intervals: &'a DisjointIntervals<T>,
@@ -227,102 +279,104 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_insert() {
-        let mut set = DisjointIntervals::new();
-
+    fn test_new() {
         // Expected: {}
+        let set = DisjointIntervals::new();
         assert!(set.is_empty());
         assert_eq!(set.len(), 0);
         assert_eq!(set.number_of_intervals(), 0);
+    }
 
-        // Insert an element.
-        // Expected: {3}
-        let newly_inserted = set.insert(3);
-        assert!(newly_inserted);
-        assert!(!set.is_empty());
-        assert_eq!(set.len(), 1);
-        assert_eq!(set.number_of_intervals(), 1);
+    #[test]
+    fn test_from() {
+        // Expected: {}
+        let set = DisjointIntervals::from([]);
+        assert!(set.is_empty());
 
-        // Insert an existing element.
-        // Expected: {3}
-        let newly_inserted = set.insert(3);
-        assert!(!newly_inserted);
-        assert!(!set.is_empty());
-        assert_eq!(set.len(), 1);
-        assert_eq!(set.number_of_intervals(), 1);
-
-        // Insert an adjacent element.
-        // Expected: {3, 4}
-        let newly_inserted = set.insert(4);
-        assert!(newly_inserted);
-        assert!(!set.is_empty());
-        assert_eq!(set.len(), 2);
-        assert_eq!(set.number_of_intervals(), 1);
-
-        // Insert an adjacent element.
-        // Expected: {2, 3, 4}
-        let newly_inserted = set.insert(2);
-        assert!(newly_inserted);
-        assert!(!set.is_empty());
-        assert_eq!(set.len(), 3);
-        assert_eq!(set.number_of_intervals(), 1);
-
-        // Insert elements within a range.
-        // Expected: {2, 3, 4, 8, 9}
-        let incremental_number = set.insert_range(8..10);
-        assert_eq!(incremental_number, 2);
+        // Expected: {1, 3, 4, 5, 9}
+        let set = DisjointIntervals::from([3, 1, 4, 1, 5, 9]);
         assert!(!set.is_empty());
         assert_eq!(set.len(), 5);
-        assert_eq!(set.number_of_intervals(), 2);
-
-        // Insert an element.
-        // Expected: {2, 3, 4, 6, 8, 9}
-        let newly_inserted = set.insert(6);
-        assert!(newly_inserted);
-        assert!(!set.is_empty());
-        assert_eq!(set.len(), 6);
         assert_eq!(set.number_of_intervals(), 3);
-
-        // Insert elements in an overlapping range.
-        // Expected: {2, 3, 4, 5, 6, 7, 8, 9}
-        let incremental_number = set.insert_range(3..9);
-        assert_eq!(incremental_number, 2);
-        assert!(!set.is_empty());
-        assert_eq!(set.len(), 8);
-        assert_eq!(set.number_of_intervals(), 1);
+        assert_eq!(set, DisjointIntervals::from(vec![1, 3, 4, 5, 9]));
     }
 
     #[test]
     fn test_mex() {
-        let mut set = DisjointIntervals::new();
-
         // mex({}) = 0
-        assert_eq!(set.mex(), 0);
-
-        set.insert_range(8..10);
-        set.insert_range(2..4);
-        set.insert(1);
+        assert_eq!(DisjointIntervals::from([]).mex(), 0);
 
         // mex({1, 2, 3, 8, 9}) = 0
-        assert_eq!(set.mex(), 0);
+        assert_eq!(DisjointIntervals::from([1, 2, 3, 8, 9]).mex(), 0);
 
-        set.insert(0);
-
-        // mex({0, 1, 2, 3, 8, 9}) = 4
-        assert_eq!(set.mex(), 4);
-
-        set.insert_range(2..100);
+        // mex({0, 1, 2, 3, 8, 9}) = 0
+        assert_eq!(DisjointIntervals::from([0, 1, 2, 3, 8, 9]).mex(), 4);
 
         // mex({0, 1, 2, ... , 99}) = 100
-        assert_eq!(set.mex(), 100);
+        assert_eq!(DisjointIntervals::from(0..100).mex(), 100);
+    }
+
+    #[test]
+    fn test_insert() {
+        let mut set = DisjointIntervals::new();
+
+        // Insert an element.
+        assert!(set.insert(3));
+        assert_eq!(set, DisjointIntervals::from([3]));
+
+        // Insert an existing element.
+        assert!(!set.insert(3));
+        assert_eq!(set, DisjointIntervals::from([3]));
+
+        // Insert an adjacent element.
+        assert!(set.insert(4));
+        assert_eq!(set, DisjointIntervals::from([3, 4]));
+
+        // Insert an adjacent element.
+        assert!(set.insert(2));
+        assert_eq!(set, DisjointIntervals::from([2, 3, 4]));
+
+        // Insert elements within a range.
+        assert_eq!(set.insert_range(8..10), 2);
+        assert_eq!(set, DisjointIntervals::from([2, 3, 4, 8, 9]));
+
+        // Insert an element.
+        assert!(set.insert(6));
+        assert_eq!(set, DisjointIntervals::from([2, 3, 4, 6, 8, 9]));
+
+        // Insert elements in an overlapping range.
+        assert_eq!(set.insert_range(3..9), 2);
+        assert_eq!(set, DisjointIntervals::from([2, 3, 4, 5, 6, 7, 8, 9]));
+    }
+
+    #[test]
+    fn test_remove() {
+        let mut set = DisjointIntervals::from([2, 3, 4, 5, 6, 8, 9]);
+
+        // Attempt to remove an element that does not exist.
+        assert!(!set.remove(7));
+        assert_eq!(set, DisjointIntervals::from([2, 3, 4, 5, 6, 8, 9]));
+
+        // Remove an element.
+        assert!(set.remove(5));
+        assert_eq!(set, DisjointIntervals::from([2, 3, 4, 6, 8, 9]));
+
+        // Remove elements within a range.
+        assert_eq!(set.remove_range(3..11), 5);
+        assert_eq!(set, DisjointIntervals::from([2]));
+
+        // Deletes and empty the set.
+        assert!(set.remove(2));
+        assert!(set.is_empty());
+
+        // Attempt to delete from the empty set.
+        assert_eq!(set.remove_range(0..100), 0);
+        assert!(set.is_empty());
     }
 
     #[test]
     fn test_range_inclusively() {
-        let mut set = DisjointIntervals::new();
-        for value in [1, 2, 3, 4, 6, 8, 9, 10, 11] {
-            set.insert(value);
-        }
+        let set = DisjointIntervals::from([1, 2, 3, 4, 6, 8, 9, 10, 11]);
 
         let mut range_inclusively = set.range_inclusively(2..11);
         assert_eq!(range_inclusively.next_back(), Some(10));
@@ -337,10 +391,7 @@ mod tests {
 
     #[test]
     fn test_range_exclusively() {
-        let mut set = DisjointIntervals::new();
-        for value in [1, 2, 3, 4, 6, 8, 9, 10, 11, 14, 15] {
-            set.insert(value);
-        }
+        let set = DisjointIntervals::from([1, 2, 3, 4, 6, 8, 9, 10, 11, 14, 15]);
 
         let mut range_exclusively = set.range_exclusively(0..14);
         assert_eq!(range_exclusively.next_back(), Some(13));
