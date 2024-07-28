@@ -34,3 +34,4 @@ pub mod maxflow;
 pub mod rolling_hash;
 pub mod rolling_hash_2;
 pub mod lexical_permutation;
+pub mod disjoint_intervals;
