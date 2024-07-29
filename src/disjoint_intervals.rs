@@ -113,7 +113,7 @@ impl DisjointIntervals<usize> {
 
         let before_len = self.len;
 
-        // Temporarily insert an element in the `range` to make an interval that completely contains the `range`.
+        // Temporarily insert elements in the `range` to make an interval that completely contains the `range`.
         self.insert_range(range.clone());
         let belong_interval = self.belong_interval(range.start).unwrap();
 
@@ -125,7 +125,7 @@ impl DisjointIntervals<usize> {
         self.insert_range(belong_interval.start..range.start);
         self.insert_range(range.end..belong_interval.end);
 
-        // Returns the number of elements removed.
+        // Return the number of elements removed.
         before_len - self.len
     }
 
