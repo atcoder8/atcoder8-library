@@ -25,6 +25,13 @@ where
     }
 }
 
+impl Default for DisjointIntervals<usize> {
+    /// Creates a new empty set.
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl DisjointIntervals<usize> {
     /// Creates a new empty set.
     pub fn new() -> Self {
@@ -44,8 +51,9 @@ impl DisjointIntervals<usize> {
         self.intervals.is_empty()
     }
 
-    /// If the set contains `value`, returns the interval to which `value` belongs.
-    pub fn belong_interval(&self, value: usize) -> Option<ops::Range<usize>> {
+    /// Finds the interval such that `value` belong to.
+    /// If no such interval exists, returns `None`.
+    pub fn find_interval(&self, value: usize) -> Option<ops::Range<usize>> {
         match self.intervals.range(..=value).next_back() {
             Some((&left, &right)) if value < right => Some(left..right),
             _ => None,
@@ -54,7 +62,7 @@ impl DisjointIntervals<usize> {
 
     /// Returns `true` if the set contains `value`.
     pub fn contains(&self, value: usize) -> bool {
-        self.belong_interval(value).is_some()
+        self.find_interval(value).is_some()
     }
 
     /// Returns the number of non-contiguous intervals.
@@ -63,7 +71,7 @@ impl DisjointIntervals<usize> {
     }
 
     /// Inserts the elements contained in the `range`.
-    /// Returns the number of newly inserted elements.
+    /// Returns the increasing number of elements in the set.
     pub fn insert_range(&mut self, range: ops::Range<usize>) -> usize {
         if range.is_empty() {
             return 0;
@@ -72,11 +80,11 @@ impl DisjointIntervals<usize> {
         let before_len = self.len;
 
         // Find both ends of an interval that completely contains a `range` after adding the elements contained in the `range`.
-        let insert_left = match self.belong_interval(range.start.saturating_sub(1)) {
+        let insert_left = match self.find_interval(range.start.saturating_sub(1)) {
             Some(left_interval) => left_interval.start,
             None => range.start,
         };
-        let insert_right = match self.belong_interval(range.end) {
+        let insert_right = match self.find_interval(range.end) {
             Some(right_interval) => right_interval.end,
             None => range.end,
         };
@@ -98,14 +106,14 @@ impl DisjointIntervals<usize> {
         self.len - before_len
     }
 
-    /// Inserts an element.
-    /// Returns `true` if the element is newly inserted.
+    /// Inserts an element to the set.
+    /// Returns `true` if the elements of the set have increased.
     pub fn insert(&mut self, value: usize) -> bool {
         self.insert_range(value..value + 1) == 1
     }
 
     /// Removes elements in `range` from the set.
-    /// Returns the number of removed elements.
+    /// Returns the decreasing number of elements in the set.
     pub fn remove_range(&mut self, range: ops::Range<usize>) -> usize {
         if range.is_empty() {
             return 0;
@@ -115,7 +123,7 @@ impl DisjointIntervals<usize> {
 
         // Temporarily insert elements in the `range` to make an interval that completely contains the `range`.
         self.insert_range(range.clone());
-        let belong_interval = self.belong_interval(range.start).unwrap();
+        let belong_interval = self.find_interval(range.start).unwrap();
 
         // Remove elements in the interval that completely contains `range`.
         self.intervals.remove(&belong_interval.start);
@@ -130,7 +138,7 @@ impl DisjointIntervals<usize> {
     }
 
     /// Removes an element from the set.
-    /// Returns `true` if the element is newly removed.
+    /// Returns `true` if the elements of the set have decreased.
     pub fn remove(&mut self, value: usize) -> bool {
         self.remove_range(value..value + 1) == 1
     }
