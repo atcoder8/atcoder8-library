@@ -71,7 +71,7 @@ impl DisjointIntervals<usize> {
 
         let before_len = self.len;
 
-        // Finds both ends of the updated intervals such that they contain `range`.
+        // Find both ends of an interval that completely contains a `range` after adding the elements contained in the `range`.
         let insert_left = match self.belong_interval(range.start.saturating_sub(1)) {
             Some(left_interval) => left_interval.start,
             None => range.start,
