@@ -79,7 +79,7 @@ impl DisjointIntervals<usize> {
 
         let before_len = self.len;
 
-        // Find both ends of an interval that completely contains a `range` after adding the elements contained in the `range`.
+        // Find the upper interval of the `range` in the set after insertion.
         let insert_start = match self.find_interval(range.start.saturating_sub(1)) {
             Some(left_interval) => left_interval.start,
             None => range.start,
@@ -89,7 +89,7 @@ impl DisjointIntervals<usize> {
             None => range.end,
         };
 
-        // Remove intervals that intersect with `range`.
+        // Remove intervals covered by the upper interval.
         let lower_intervals = self
             .intervals
             .range(insert_start..)
@@ -101,7 +101,7 @@ impl DisjointIntervals<usize> {
             self.len -= end - start;
         }
 
-        // Insert a interval covering `range`.
+        // Insert the upper interval.
         self.intervals.insert(insert_start, insert_end);
         self.len += insert_end - insert_start;
 
