@@ -1,13 +1,13 @@
 use std::{collections::BTreeMap, ops};
 
-/// Data structure that represent a set by the sum of disjoint intervals.
+/// Data structure that represent a set by the union of disjoint intervals.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct DisjointIntervals<T> {
     /// Map with the start of the interval as key and the end of the interval as value.
     /// Each interval represented as a right half-open interval.
     intervals: BTreeMap<T, T>,
 
-    /// Number of elements belonging to one of the intervals.
+    /// Number of elements in the set.
     len: usize,
 }
 
@@ -55,7 +55,7 @@ impl DisjointIntervals<usize> {
     /// If no such interval exists, returns `None`.
     pub fn find_interval(&self, value: usize) -> Option<ops::Range<usize>> {
         match self.intervals.range(..=value).next_back() {
-            Some((&left, &right)) if value < right => Some(left..right),
+            Some((&start, &end)) if value < end => Some(start..end),
             _ => None,
         }
     }
@@ -80,29 +80,31 @@ impl DisjointIntervals<usize> {
         let before_len = self.len;
 
         // Find both ends of an interval that completely contains a `range` after adding the elements contained in the `range`.
-        let insert_left = match self.find_interval(range.start.saturating_sub(1)) {
+        let insert_start = match self.find_interval(range.start.saturating_sub(1)) {
             Some(left_interval) => left_interval.start,
             None => range.start,
         };
-        let insert_right = match self.find_interval(range.end) {
+        let insert_end = match self.find_interval(range.end) {
             Some(right_interval) => right_interval.end,
             None => range.end,
         };
 
-        // Update the combination of intervals and the number of elements.
-        loop {
-            match self.intervals.range(insert_left..).next() {
-                Some((&left, &right)) if right <= insert_right => {
-                    self.intervals.remove(&left);
-                    self.len -= right - left;
-                }
-                _ => break,
-            }
+        // Remove intervals that intersect with `range`.
+        let lower_intervals = self
+            .intervals
+            .range(insert_start..)
+            .take_while(|(_, &end)| end <= insert_end)
+            .map(|(&start, _)| start)
+            .collect::<Vec<usize>>();
+        for start in lower_intervals {
+            let end = self.intervals.remove(&start).unwrap();
+            self.len -= end - start;
         }
-        self.intervals.insert(insert_left, insert_right);
-        self.len += insert_right - insert_left;
 
-        // Return the number of elements inserted.
+        // Insert a interval covering `range`.
+        self.intervals.insert(insert_start, insert_end);
+        self.len += insert_end - insert_start;
+
         self.len - before_len
     }
 
@@ -123,17 +125,16 @@ impl DisjointIntervals<usize> {
 
         // Temporarily insert elements in the `range` to make an interval that completely contains the `range`.
         self.insert_range(range.clone());
-        let belong_interval = self.find_interval(range.start).unwrap();
+        let upper_interval = self.find_interval(range.start).unwrap();
 
         // Remove elements in the interval that completely contains `range`.
-        self.intervals.remove(&belong_interval.start);
-        self.len -= belong_interval.len();
+        self.intervals.remove(&upper_interval.start);
+        self.len -= upper_interval.len();
 
         // Insert the removed elements which are not included in `range`.
-        self.insert_range(belong_interval.start..range.start);
-        self.insert_range(range.end..belong_interval.end);
+        self.insert_range(upper_interval.start..range.start);
+        self.insert_range(range.end..upper_interval.end);
 
-        // Return the number of elements removed.
         before_len - self.len
     }
 
@@ -146,7 +147,7 @@ impl DisjointIntervals<usize> {
     /// Returns the smallest non-negative integer not included in the set.
     pub fn mex(&self) -> usize {
         match self.intervals.first_key_value() {
-            Some((&left, &right)) if left == 0 => right,
+            Some((&start, &end)) if start == 0 => end,
             _ => 0,
         }
     }
@@ -185,7 +186,7 @@ impl<'a> Iterator for RangeInclusively<'a, usize> {
 
         if !self.intervals.contains(self.range.start) {
             match self.intervals.intervals.range(self.range.start..).next() {
-                Some((&left, _)) => self.range.start = left,
+                Some((&start, _)) => self.range.start = start,
                 None => {
                     self.range.start = self.range.end;
                     return None;
@@ -207,7 +208,7 @@ impl<'a> DoubleEndedIterator for RangeInclusively<'a, usize> {
 
         if !self.intervals.contains(self.range.end - 1) {
             match self.intervals.intervals.range(..self.range.end).next_back() {
-                Some((_, &right)) => self.range.end = right,
+                Some((_, &end)) => self.range.end = end,
                 None => {
                     self.range.end = self.range.start;
                     return None;
@@ -237,13 +238,13 @@ impl<'a> Iterator for RangeExclusively<'a, usize> {
         }
 
         if self.intervals.contains(self.range.start) {
-            let (_, &right) = self
+            let (_, &end) = self
                 .intervals
                 .intervals
                 .range(..=self.range.start)
                 .next_back()
                 .unwrap();
-            self.range.start = right.min(self.range.end);
+            self.range.start = end.min(self.range.end);
 
             if self.range.is_empty() {
                 return None;
@@ -263,13 +264,13 @@ impl<'a> DoubleEndedIterator for RangeExclusively<'a, usize> {
         }
 
         if self.intervals.contains(self.range.end - 1) {
-            let (&left, _) = self
+            let (&start, _) = self
                 .intervals
                 .intervals
                 .range(..self.range.end)
                 .next_back()
                 .unwrap();
-            self.range.end = left.max(self.range.start);
+            self.range.end = start.max(self.range.start);
 
             if self.range.is_empty() {
                 return None;
