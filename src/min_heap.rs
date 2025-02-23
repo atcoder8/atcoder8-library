@@ -45,7 +45,7 @@ impl<Value, SortKey: Ord> NodeBuilder<Value, SortKey> {
     }
 
     fn build(&self, value: Value) -> HeapNode<Value, SortKey> {
-        let sort_key = (&self.extract_key)(&value);
+        let sort_key = (self.extract_key)(&value);
         HeapNode { value, sort_key }
     }
 }
@@ -138,8 +138,7 @@ impl<Value, SortKey: Ord> MinHeap<Value, SortKey> {
     where
         Predicate: FnMut(&Value) -> bool,
     {
-        self.heap
-            .retain(|Reverse(node)| (&mut predicate)(&node.value));
+        self.heap.retain(|Reverse(node)| predicate(&node.value));
     }
 
     /// 追加の要素のための領域を確保します。
