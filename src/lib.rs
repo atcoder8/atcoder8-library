@@ -35,3 +35,4 @@ pub mod rolling_hash_2;
 pub mod lexical_permutation;
 pub mod disjoint_intervals;
 pub mod min_heap;
+pub mod binomial_coefficient;
