@@ -1,7 +1,7 @@
 /// Module for random testing.
 #[cfg(test)]
 mod random_test {
-    use rand::rngs::ThreadRng;
+    use rand::prelude::*;
 
     /// Input data type.
     type Input = ();
@@ -15,7 +15,7 @@ mod random_test {
         /// This value specifies the number of tests.
         const NUMBER_OF_TESTS: usize = 1000;
 
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
 
         for test_case_index in 0..NUMBER_OF_TESTS {
             let input = generator(&mut rng);
