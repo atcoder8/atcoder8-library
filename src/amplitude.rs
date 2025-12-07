@@ -19,13 +19,13 @@ pub struct Amplitude {
 
 impl PartialOrd for Amplitude {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        (other.x * self.y).partial_cmp(&(self.x * other.y))
+        Some(self.cmp(other))
     }
 }
 
 impl Ord for Amplitude {
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-        self.partial_cmp(other).unwrap()
+        (other.x * self.y).cmp(&(self.x * other.y))
     }
 }
 
