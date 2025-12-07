@@ -50,17 +50,23 @@ pub struct Hasher {
     inverse_radixes: HashValue,
 }
 
+impl Default for Hasher {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Hasher {
     /// Generates a `Hasher` using a random number.
     pub fn new() -> Self {
-        let mut thread_rng = rand::thread_rng();
+        let mut thread_rng = rand::rng();
 
         let mut radixes = [0; HASH_BLOCK_NUM];
         let mut inverse_radixes = [0; HASH_BLOCK_NUM];
 
         for block_idx in 0..HASH_BLOCK_NUM {
             let modulus = MODULI[block_idx];
-            radixes[block_idx] = thread_rng.gen_range(0..modulus);
+            radixes[block_idx] = thread_rng.random_range(0..modulus);
             inverse_radixes[block_idx] =
                 modinv(radixes[block_idx] as u32, modulus as u32) as HashBlock;
         }
@@ -85,7 +91,7 @@ impl Hasher {
     }
 
     /// Generates a hash value corresponding to an empty sequence.
-    pub fn empty_hash(&self) -> RollingHash {
+    pub fn empty_hash(&self) -> RollingHash<'_> {
         RollingHash {
             hasher: self,
             hash_elements: VecDeque::new(),
@@ -95,7 +101,7 @@ impl Hasher {
     }
 
     /// Generates a hash value from a iterator of the sequence.
-    pub fn hash_from_iter<T, I>(&self, seq: I) -> RollingHash
+    pub fn hash_from_iter<T, I>(&self, seq: I) -> RollingHash<'_>
     where
         HashBlock: From<T>,
         I: IntoIterator<Item = T>,
@@ -107,7 +113,7 @@ impl Hasher {
     }
 
     /// Generates a hash value from a slice of the sequence.
-    pub fn hash_from_slice<T>(&self, seq: &[T]) -> RollingHash
+    pub fn hash_from_slice<T>(&self, seq: &[T]) -> RollingHash<'_>
     where
         HashBlock: From<T>,
         T: Copy,
@@ -116,17 +122,17 @@ impl Hasher {
     }
 
     /// Generates a hash value from a string slice.
-    pub fn hash_from_str(&self, s: &str) -> RollingHash {
+    pub fn hash_from_str(&self, s: &str) -> RollingHash<'_> {
         self.hash_from_iter(s.chars())
     }
 
     /// Generates a hash value from a slice with elements of type `usize`.
-    pub fn hash_from_usize_slice(&self, seq: &[usize]) -> RollingHash {
+    pub fn hash_from_usize_slice(&self, seq: &[usize]) -> RollingHash<'_> {
         self.hash_from_iter(seq.iter().map(|&elem| elem as HashBlock))
     }
 
     /// Generates a hash value from a sequence with elements of type `usize`.
-    pub fn hash_from_usize_iter<I>(&self, seq: I) -> RollingHash
+    pub fn hash_from_usize_iter<I>(&self, seq: I) -> RollingHash<'_>
     where
         I: IntoIterator<Item = usize>,
     {
@@ -150,7 +156,7 @@ pub struct RollingHash<'a> {
     raised_radixes: HashValue,
 }
 
-impl<'a> RollingHash<'a> {
+impl RollingHash<'_> {
     /// Returns the length of the sequence.
     pub fn len(&self) -> usize {
         self.hash_elements.len()

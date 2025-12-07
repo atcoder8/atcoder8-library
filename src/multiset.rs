@@ -1,7 +1,7 @@
 //! Implements an ordered multiset using `BTreeMap`.
 
 use std::{
-    collections::{btree_map, BTreeMap},
+    collections::{BTreeMap, btree_map},
     iter::FromIterator,
     ops::RangeBounds,
 };
@@ -165,7 +165,7 @@ where
     }
 
     /// Constructs an iterator of pairs of values and their number in the range specified by `range`.
-    pub fn range<R>(&self, range: R) -> btree_map::Range<T, usize>
+    pub fn range<R>(&self, range: R) -> btree_map::Range<'_, T, usize>
     where
         R: RangeBounds<T>,
     {
@@ -173,12 +173,12 @@ where
     }
 
     /// Constructs an iterator of deduplicated values.
-    pub fn deduplicated_values(&self) -> btree_map::Keys<T, usize> {
+    pub fn deduplicated_values(&self) -> btree_map::Keys<'_, T, usize> {
         self.map.keys()
     }
 
     /// Gets an iterator that visits the elements in the `Multiset` in ascending order.
-    pub fn iter(&self) -> Iter<T> {
+    pub fn iter(&self) -> Iter<'_, T> {
         Iter::new(self)
     }
 
