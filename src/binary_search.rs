@@ -442,7 +442,7 @@ macro_rules! impl_binary_search_with_float {
         /// * `is_ok` - Monotonic function.
         /// * `eps` - The allowable absolute error. It must be a positive number.
         /// * `dec` - Represents that `is_ok` is a monotonically decreasing function if true,
-        /// or a monotonically increasing function if false.
+        ///           or a monotonically increasing function if false.
         ///
         /// # Examples
         ///
@@ -497,7 +497,7 @@ macro_rules! impl_binary_search_with_float {
             /// * `is_ok` - Monotonic function.
             /// * `eps` - The allowable absolute error. It must be a positive number.
             /// * `dec` - Represents that `is_ok` is a monotonically decreasing function if true,
-            /// or a monotonically increasing function if false.
+            ///     or a monotonically increasing function if false.
             ///
             /// # Examples
             ///
