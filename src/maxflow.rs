@@ -162,7 +162,9 @@ where
     fn increase_flow(&mut self, source: usize, sink: usize, flow_limit: Cap) -> Cap {
         let levels = self.find_levels(source, sink);
 
-        let Some(sink_level) = levels[sink] else { return Cap::zero() };
+        let Some(sink_level) = levels[sink] else {
+            return Cap::zero();
+        };
 
         let select_edge = |cur_node: usize,
                            edge_progresses: &mut [usize],
@@ -202,7 +204,11 @@ where
                              inv_edge_progresses: &mut [usize],
                              edges: &[FlowEdge<Cap>],
                              stack: &mut Vec<DFSNode<Cap>>| {
-            let Some((edge_idx, inverse)) = select_edge(cur_node, edge_progresses, inv_edge_progresses, edges) else { return; };
+            let Some((edge_idx, inverse)) =
+                select_edge(cur_node, edge_progresses, inv_edge_progresses, edges)
+            else {
+                return;
+            };
             let edge = edges[edge_idx];
             let (next_node, next_rem_capacity) = if inverse {
                 (edge.from, edge.flow)
@@ -249,8 +255,7 @@ where
         }];
         stack.reserve(2 * sink_level);
 
-        let mut flow_state_stack: Vec<FlowState<Cap>> = vec![];
-        flow_state_stack.reserve(sink_level);
+        let mut flow_state_stack: Vec<FlowState<Cap>> = Vec::with_capacity(sink_level);
 
         while let Some(dfs_node) = stack.pop() {
             match dfs_node {
@@ -413,3 +418,114 @@ macro_rules! impl_capacity_for_unsigned_integer {
 }
 
 impl_capacity_for_unsigned_integer!(u8, u16, u32, u64, u128, usize);
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_max_flow_wikipedia() {
+        // From https://commons.wikimedia.org/wiki/File:Min_cut.png
+        // Under CC BY-SA 3.0 https://creativecommons.org/licenses/by-sa/3.0/deed.en
+        let mut graph = MfGraph::<usize>::new(6);
+        graph.add_edge(0, 1, 3);
+        graph.add_edge(0, 2, 3);
+        graph.add_edge(1, 2, 2);
+        graph.add_edge(1, 3, 3);
+        graph.add_edge(2, 4, 2);
+        graph.add_edge(3, 4, 4);
+        graph.add_edge(3, 5, 2);
+        graph.add_edge(4, 5, 3);
+
+        assert_eq!(graph.flow(0, 5), 5);
+
+        let edges = graph.get_edges();
+        {
+            #[rustfmt::skip]
+            assert_eq!(
+                edges,
+                &vec![
+                    FlowEdge { from: 0, to: 1, capacity: 3, flow: 3 },
+                    FlowEdge { from: 0, to: 2, capacity: 3, flow: 2 },
+                    FlowEdge { from: 1, to: 2, capacity: 2, flow: 0 },
+                    FlowEdge { from: 1, to: 3, capacity: 3, flow: 3 },
+                    FlowEdge { from: 2, to: 4, capacity: 2, flow: 2 },
+                    FlowEdge { from: 3, to: 4, capacity: 4, flow: 1 },
+                    FlowEdge { from: 3, to: 5, capacity: 2, flow: 2 },
+                    FlowEdge { from: 4, to: 5, capacity: 3, flow: 3 },
+                ]
+            );
+        }
+        // assert_eq!(
+        //     graph.min_cut(0),
+        //     vec![true, false, true, false, false, false]
+        // );
+    }
+
+    #[test]
+    fn test_max_flow_wikipedia_multiple_edges() {
+        // From https://commons.wikimedia.org/wiki/File:Min_cut.png
+        // Under CC BY-SA 3.0 https://creativecommons.org/licenses/by-sa/3.0/deed.en
+        let mut graph = MfGraph::<usize>::new(6);
+        for &(u, v, c) in &[
+            (0, 1, 3),
+            (0, 2, 3),
+            (1, 2, 2),
+            (1, 3, 3),
+            (2, 4, 2),
+            (3, 4, 4),
+            (3, 5, 2),
+            (4, 5, 3),
+        ] {
+            for _ in 0..c {
+                graph.add_edge(u, v, 1);
+            }
+        }
+
+        assert_eq!(graph.flow(0, 5), 5);
+        // assert_eq!(
+        //     graph.min_cut(0),
+        //     vec![true, false, true, false, false, false]
+        // );
+    }
+
+    #[test]
+    #[allow(clippy::many_single_char_names)]
+    fn test_max_flow_misawa() {
+        // Originally by @MiSawa
+        // From https://gist.github.com/MiSawa/47b1d99c372daffb6891662db1a2b686
+        let n = 100;
+
+        let mut graph = MfGraph::<usize>::new((n + 1) * 2 + 5);
+        let (s, a, b, c, t) = (0, 1, 2, 3, 4);
+        graph.add_edge(s, a, 1);
+        graph.add_edge(s, b, 2);
+        graph.add_edge(b, a, 2);
+        graph.add_edge(c, t, 2);
+        for i in 0..n {
+            let i = 2 * i + 5;
+            for j in 0..2 {
+                for k in 2..4 {
+                    graph.add_edge(i + j, i + k, 3);
+                }
+            }
+        }
+        for j in 0..2 {
+            graph.add_edge(a, 5 + j, 3);
+            graph.add_edge(2 * n + 5 + j, c, 3);
+        }
+
+        assert_eq!(graph.flow(s, t), 2);
+    }
+
+    #[test]
+    fn test_dont_repeat_same_phase() {
+        let n = 100_000;
+        let mut graph = MfGraph::<usize>::new(3);
+        graph.add_edge(0, 1, n);
+        for _ in 0..n {
+            graph.add_edge(1, 2, 1);
+        }
+        assert_eq!(graph.flow(0, 2), n);
+    }
+}
