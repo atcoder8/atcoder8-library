@@ -8,7 +8,6 @@ pub mod disjoint_intervals;
 pub mod eratosthenes_sieve;
 pub mod factorial;
 pub mod fenwick_tree;
-pub mod functions;
 pub mod gaussian_elimination;
 pub mod lazy_segtree;
 pub mod lexical_permutation;
