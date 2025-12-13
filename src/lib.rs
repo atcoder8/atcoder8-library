@@ -3,6 +3,7 @@ pub mod binary_search;
 pub mod binomial_coefficient;
 pub mod bit_sweep;
 pub mod convolution;
+pub mod convolution2;
 pub mod cumulative_sum;
 pub mod disjoint_intervals;
 pub mod eratosthenes_sieve;
