@@ -40,7 +40,7 @@ fn ntt(a: &mut [Mint], inverse: bool) {
 
     assert_eq!(n, 1 << h, "配列の長さは2の冪乗である必要があります。");
     assert!(
-        h < MAX_EXP,
+        h <= MAX_EXP,
         "配列の長さは2^{MAX_EXP}以下である必要があります。"
     );
 
