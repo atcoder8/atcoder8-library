@@ -10,6 +10,7 @@ pub mod eratosthenes_sieve;
 pub mod factorial;
 pub mod fenwick_tree;
 pub mod gaussian_elimination;
+pub mod geometry;
 pub mod lazy_segtree;
 pub mod lexical_permutation;
 pub mod lis;
