@@ -29,14 +29,16 @@ impl<Value, SortKey: Ord> Ord for HeapNode<Value, SortKey> {
 
 /// キー抽出関数を用いてヒープノードを作成するBuilderです。
 #[derive(Debug, Clone)]
-struct NodeBuilder<Value, SortKey: Ord> {
+struct NodeBuilder<Value, SortKey: Ord, ExtractKey: Fn(&Value) -> SortKey> {
     value: PhantomData<Value>,
     sort_key: PhantomData<SortKey>,
-    extract_key: fn(&Value) -> SortKey,
+    extract_key: ExtractKey,
 }
 
-impl<Value, SortKey: Ord> NodeBuilder<Value, SortKey> {
-    fn new(extract_key: fn(&Value) -> SortKey) -> Self {
+impl<Value, SortKey: Ord, ExtractKey: Fn(&Value) -> SortKey>
+    NodeBuilder<Value, SortKey, ExtractKey>
+{
+    fn new(extract_key: ExtractKey) -> Self {
         Self {
             value: PhantomData,
             sort_key: PhantomData,
@@ -52,24 +54,26 @@ impl<Value, SortKey: Ord> NodeBuilder<Value, SortKey> {
 
 /// キー抽出関数を保持する最小ヒープです。
 #[derive(Debug, Clone)]
-pub struct MinHeap<Value, SortKey: Ord> {
+pub struct MinHeap<Value, SortKey: Ord, ExtractKey: Fn(&Value) -> SortKey> {
     /// キー抽出関数を用いて順序付けされたヒープ
     heap: BinaryHeap<Reverse<HeapNode<Value, SortKey>>>,
 
     /// キー抽出関数を用いてヒープノードを作成するBuilder
-    node_builder: NodeBuilder<Value, SortKey>,
+    node_builder: NodeBuilder<Value, SortKey, ExtractKey>,
 }
 
-impl<Value, SortKey: Ord> Extend<Value> for MinHeap<Value, SortKey> {
+impl<Value, SortKey: Ord, ExtractKey: Fn(&Value) -> SortKey> Extend<Value>
+    for MinHeap<Value, SortKey, ExtractKey>
+{
     fn extend<T: IntoIterator<Item = Value>>(&mut self, iter: T) {
         let nodes = iter.into_iter().map(|value| self.node_builder.build(value));
         self.heap.extend(nodes.map(Reverse));
     }
 }
 
-impl<Value, SortKey: Ord> MinHeap<Value, SortKey> {
+impl<Value, SortKey: Ord, ExtractKey: Fn(&Value) -> SortKey> MinHeap<Value, SortKey, ExtractKey> {
     /// 空のヒープを作成します。ヒープ内部の順序付けはキー抽出関数を用いて行われます。
-    pub fn new(extract_key: fn(&Value) -> SortKey) -> Self {
+    pub fn new(extract_key: ExtractKey) -> Self {
         Self {
             heap: BinaryHeap::new(),
             node_builder: NodeBuilder::new(extract_key),
@@ -77,7 +81,7 @@ impl<Value, SortKey: Ord> MinHeap<Value, SortKey> {
     }
 
     /// 単一の値を持つヒープを生成します。
-    pub fn from_value(value: Value, extract_key: fn(&Value) -> SortKey) -> Self {
+    pub fn from_value(value: Value, extract_key: ExtractKey) -> Self {
         let mut min_heap = Self::new(extract_key);
         min_heap.push(value);
 
@@ -85,7 +89,7 @@ impl<Value, SortKey: Ord> MinHeap<Value, SortKey> {
     }
 
     /// 値のコレクションをヒープに変換します。
-    pub fn from_iter<I>(values: I, extract_key: fn(&Value) -> SortKey) -> Self
+    pub fn from_iter<I>(values: I, extract_key: ExtractKey) -> Self
     where
         I: IntoIterator<Item = Value>,
     {
@@ -168,19 +172,26 @@ impl<Value, SortKey: Ord> MinHeap<Value, SortKey> {
 
 /// ヒープの要素をキー抽出関数の戻り値に関して昇順に返すイテレータです。
 #[derive(Debug, Clone)]
-pub struct MinHeapIter<Value, SortKey: Ord> {
-    min_heap: MinHeap<Value, SortKey>,
+pub struct MinHeapIter<Value, SortKey: Ord, ExtractKey: Fn(&Value) -> SortKey> {
+    min_heap: MinHeap<Value, SortKey, ExtractKey>,
 }
 
-impl<Value, SortKey: Ord> ExactSizeIterator for MinHeapIter<Value, SortKey> {
+impl<Value, SortKey: Ord, ExtractKey: Fn(&Value) -> SortKey> ExactSizeIterator
+    for MinHeapIter<Value, SortKey, ExtractKey>
+{
     fn len(&self) -> usize {
         self.min_heap.len()
     }
 }
 
-impl<Value, SortKey: Ord> FusedIterator for MinHeapIter<Value, SortKey> {}
+impl<Value, SortKey: Ord, ExtractKey: Fn(&Value) -> SortKey> FusedIterator
+    for MinHeapIter<Value, SortKey, ExtractKey>
+{
+}
 
-impl<Value, SortKey: Ord> Iterator for MinHeapIter<Value, SortKey> {
+impl<Value, SortKey: Ord, ExtractKey: Fn(&Value) -> SortKey> Iterator
+    for MinHeapIter<Value, SortKey, ExtractKey>
+{
     type Item = Value;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -188,10 +199,12 @@ impl<Value, SortKey: Ord> Iterator for MinHeapIter<Value, SortKey> {
     }
 }
 
-impl<Value, SortKey: Ord> IntoIterator for MinHeap<Value, SortKey> {
+impl<Value, SortKey: Ord, ExtractKey: Fn(&Value) -> SortKey> IntoIterator
+    for MinHeap<Value, SortKey, ExtractKey>
+{
     type Item = Value;
 
-    type IntoIter = MinHeapIter<Value, SortKey>;
+    type IntoIter = MinHeapIter<Value, SortKey, ExtractKey>;
 
     /// ヒープを消費してイテレータを生成します。
     /// 生成されたイテレータはヒープ内の全ての値をキー抽出関数の戻り値に関して昇順に返します。
